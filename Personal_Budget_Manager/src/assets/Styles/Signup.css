@@ -1,0 +1,89 @@
+.signup-header {
+    display: flex;
+    justify-content: center; 
+    align-items: center;
+    padding: 20px;
+    background-color: black;
+    color: white;
+    position: relative; 
+  }
+  
+  .signup-header h1 {
+    width: 100%; 
+    text-align: center; 
+    margin: 0;
+  }
+  
+  .signup-nav {
+    position: absolute;
+    right: 2vw; 
+  }
+  
+  .signup-nav ul{
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .signup-nav li{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .signup-nav a{
+    padding: 10px 5px 5px 5px;
+    border-radius: 3px;
+    color: white;
+    text-decoration: none;
+  }
+  .signup-nav a:hover{
+    background-color: gray;
+  }
+.signup-main{
+    width: 98vw;
+    height: 90vh;
+    position: relative;
+}
+
+.signup-container{
+    padding: 70px;
+    border: 3px solid black;
+    border-radius: 5px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
+.signup-container label{
+    display: block;
+    margin-bottom: 5px;
+}
+.signup-container input{
+    display: block;
+    margin-bottom: 5px;
+    border: 1px solid black;
+    border-radius: 3px;
+    width: 200px;
+    height: 25px;
+}
+.signup-bt button{
+    border: 1px solid black;
+    background-color: black;
+    color: white;
+    border-radius: 3px;
+    width: 70px;
+    height: 25px;
+}
+.signup-bt{
+    margin-top: 10px;
+    text-align: center;
+}
+
+.signup-redirect{
+    margin-top: 20px;
+}
+
+.nav-link{
+    color: red;
+}
