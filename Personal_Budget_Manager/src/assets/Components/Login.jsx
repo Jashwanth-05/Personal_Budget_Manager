@@ -6,8 +6,11 @@ const Login = () => {
   return (
     <div>
     <header className='login-header'>
-        <h1>Personal Budget Manager</h1>
-        <nav className='login-nav'>
+    <div>
+    <h1 className='title' style={{}}><span style={{color:"#0F9D58",fontFamily: '"Bebas Neue", serif'}}>P</span><span style={{color:"#F4B400",fontFamily: '"Bebas Neue", serif'}}>B</span><span style={{color:"#DB4437",fontFamily: '"Bebas Neue", serif'}}>M</span></h1>
+    </div>
+    <h1><span style={{color:"#0F9D58"}}>P</span>ersonal <span style={{color:"#F4B400"}}>B</span>udget <span style={{color:"#DB4437"}}>M</span>anager</h1>
+    <nav className='login-nav'>
             <ul>
                 <li><HomeIcon /><Link to='/'>Home</Link></li>
             </ul>
@@ -16,6 +19,9 @@ const Login = () => {
     <main className='login-main'>
         <div className='login-container'>
             <form action="" className='form-box'>
+                <div className='form-title'>
+                    <span>Log in</span>
+                </div>
                 <label htmlFor="Email">Email:</label>
                 <input type="email" id='Email'/>
                 <label htmlFor="Password">Password:</label>

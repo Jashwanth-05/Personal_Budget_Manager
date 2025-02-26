@@ -2,12 +2,12 @@
     display: flex;
     justify-content: center; 
     align-items: center;
-    padding: 20px;
+    padding: 12px;
     background-color: black;
     color: white;
-    position: relative; 
-  }
-  
+    position: relative;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+    }
   .home-header h1 {
     width: 100%; 
     text-align: center; 
@@ -52,7 +52,7 @@
   }
 
   .home-content1{
-    top: 26vh;
+    top: 22vh;
     right:8vw;
     width: 40vw;
     position: absolute;
@@ -83,4 +83,11 @@
 
   .home-content2 ul li{
     margin-bottom: 5px;
+  }
+
+  .home-main{
+    background-image: url("../../../public/bg.jpg");
+    background-size: cover; 
+    background-position: center;
+    background-repeat: no-repeat;
   }

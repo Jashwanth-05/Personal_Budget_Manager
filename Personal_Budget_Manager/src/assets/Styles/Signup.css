@@ -2,10 +2,11 @@
     display: flex;
     justify-content: center; 
     align-items: center;
-    padding: 20px;
+    padding: 12px;
     background-color: black;
     color: white;
-    position: relative; 
+    position: relative;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
   }
   
   .signup-header h1 {
@@ -39,8 +40,8 @@
     background-color: gray;
   }
 .signup-main{
-    width: 98vw;
-    height: 90vh;
+  width: 99.9vw;
+  height: 90.9vh;
     position: relative;
 }
 

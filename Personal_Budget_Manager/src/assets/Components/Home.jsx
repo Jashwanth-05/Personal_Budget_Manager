@@ -6,14 +6,17 @@ const Home = () => {
   return (
     <div>
         <header className='home-header'>
-            <h1>Personal Budget Manager</h1>
+            <div>
+            <h1 className='title' style={{}}><span style={{color:"#0F9D58",fontFamily: '"Bebas Neue", serif'}}>P</span><span style={{color:"#F4B400",fontFamily: '"Bebas Neue", serif'}}>B</span><span style={{color:"#DB4437",fontFamily: '"Bebas Neue", serif'}}>M</span></h1>
+            </div>
+            <h1><span style={{color:"#0F9D58"}}>P</span>ersonal <span style={{color:"#F4B400"}}>B</span>udget <span style={{color:"#DB4437"}}>M</span>anager</h1>
             <nav className='home-nav'>
                 <ul>
                     <li><PersonIcon/><Link to='/login'>Login</Link></li>
                 </ul>
             </nav>
         </header>
-        <main>
+        <main className='home-main'>
           <div className='home-quote'>
             <h3>
               &quot;Budgeting only has one rule;<br />&nbsp;Do not go over budget. <br /> <br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-Leslie Tayne&quot;
@@ -26,7 +29,7 @@ const Home = () => {
             </p>
           </div>
           <div className='home-content2'>
-            <p style={{marginBottom:"8px"}}><strong>Features:</strong></p>
+            <p style={{marginBottom:"8px",fontSize:"larger"}}><strong>Features:</strong></p>
             <table cellSpacing="0" cellPadding="4">
             <tr>
               <td><strong>Budget Management</strong></td>

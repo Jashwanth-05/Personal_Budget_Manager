@@ -2,10 +2,11 @@
     display: flex;
     justify-content: center; 
     align-items: center;
-    padding: 20px;
+    padding: 12px;
     background-color: black;
     color: white;
-    position: relative; 
+    position: relative;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px; 
   }
   
   .login-header h1 {
@@ -34,16 +35,18 @@
     background-color: gray;
   }
 .login-main{
-    width: 98vw;
-    height: 90vh;
+    width: 99.9vw;
+    height: 90.9vh;
     position: relative;
 }
+
 .login-nav li{
   display: flex;
   justify-content: center;
   align-items: center;
 }
 .login-container{
+  z-index: 2;
     padding: 80px 50px;
     border: 3px solid black;
     border-radius: 5px;
@@ -85,4 +88,10 @@
 
 .nav-link{
     color: red;
+}
+
+.form-title{
+  text-align: center;
+  padding-bottom: 10px;
+  font-size: 30px;
 }

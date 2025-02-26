@@ -1,0 +1,164 @@
+.budgets-main {
+    padding: 20px;
+    background-color: white;
+    position:absolute;
+    width: 70vw;
+    height: 80vh;
+    top: 10vh;
+    left: 23vw;
+}
+.budgets-header{
+    display: flex;
+    align-items: center;
+}
+.budgets-header svg{
+    margin:0px 0px 7px 0px;
+    padding: 5px;
+    border:1px solid black;
+    border-radius: 100%;
+}
+
+.budgets-title {
+    flex: 1;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.add-icon {
+    font-size: 30px;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+.add-icon:hover {
+    transform: scale(1.2);
+}
+
+/* Budget Items */
+.budget-category {
+    background-color: white;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px;
+    margin-bottom: 15px;
+}
+
+.budgets-subtitle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.budgets-subtitle:hover {
+    background-color: #e0e0e0;
+    border-radius: 5px;
+}
+
+
+.budget-name {
+    font-weight: bold;
+}
+
+.budget-amount {
+    color: green;
+    font-weight: bold;
+}
+
+.budget-spent {
+    color: red;
+}
+
+/* Overlay Modal */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 350px;
+    position: relative;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.close-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.add-budget-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.add-budget-form input,
+.add-budget-form select,
+.add-budget-form button {
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.add-budget-form button {
+    background-color: black;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.add-budget-form button:hover {
+    background-color: gray;
+    color: black;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+    
+
+.budget-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  
+  .budget-table th, .budget-table td {
+    padding: 10px;
+    text-align: left;
+  }
+  
+  .budget-table th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+  }
+  
+  .budget-table td {
+    vertical-align: middle;
+  }
+  
+  .budget-progress {
+    text-align: center;
+  }
+  
