@@ -12,7 +12,7 @@ const Transactions = () => {
   const [filter, setFilter] = useState("monthly");
   const [customRange, setCustomRange] = useState({ start: "", end: "" });
   const [newTransaction, setNewTransaction] = useState({
-    budgetName: "",
+    budgetId: "",
     amount: "",
     description: "",
     date: new Date().toISOString().split("T")[0], // Default to today
@@ -56,14 +56,15 @@ const Transactions = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!newTransaction.budgetName || !newTransaction.amount || !newTransaction.description || !newTransaction.date) {
+    if (!newTransaction.budgetId || !newTransaction.amount || !newTransaction.description || !newTransaction.date) {
       alert("Please fill all fields!");
       return;
     }
     addTransaction({
-      ...newTransaction,
+      budgetId: newTransaction.budgetId,
+      description: newTransaction.description,
       amount: Number(newTransaction.amount),
-      date: newTransaction.date,
+      date: newTransaction.date || new Date().toISOString().split("T")[0], 
     });
     setNewTransaction({ budgetName: "", amount: "", description: "", date: new Date().toISOString().split("T")[0] });
     setIsModalOpen(false);
@@ -122,10 +123,10 @@ const Transactions = () => {
               <CloseIcon className="close-icon" onClick={() => setIsModalOpen(false)} />
               <h3>Add Transaction</h3>
               <form onSubmit={handleSubmit}>
-                <select name="budgetName" value={newTransaction.budgetName} onChange={handleChange}>
+                <select name="budgetId" value={newTransaction.budgetName} onChange={handleChange}>
                   <option value="">Select Budget</option>
                   {budgets.map((budget, index) => (
-                    <option key={index} value={budget.name}>
+                    <option key={index} value={budget._id}>
                       {budget.name}
                     </option>
                   ))}

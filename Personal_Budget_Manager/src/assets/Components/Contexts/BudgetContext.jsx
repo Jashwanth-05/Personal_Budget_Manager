@@ -1,42 +1,71 @@
 import React, { createContext, useContext, useState } from "react";
-
+import axios from "axios";
 const BudgetContext = createContext();
-
+import { useEffect } from "react";
 export const useBudget = () => useContext(BudgetContext);
 
 export const BudgetProvider = ({ children }) => {
-  const [budgets, setBudgets] = useState([
-    { category: "Monthly", name: "Groceries", Budget: 1000, Spent: 500 },
-    { category: "Weekly", name: "Transport", Budget: 250, Spent: 100 },
-    { category: "Custom", name: "Vacation", Budget: 400, Spent: 150 },
-  ]);
-  const [incomes,setIncomes]=useState([{name:"Salary",money:20000,date:"2025-02-01"}])
-  const [transactions, setTransactions] = useState([
-    { budgetName: "Groceries", description: "Bought vegetables", amount: 500, date: "2025-02-15" },   
-  ]);
+  const [budgets, setBudgets] = useState([]);
+  const [incomes,setIncomes]=useState([]);
+  const [transactions, setTransactions] = useState([]);
 
-  // Function to add a new transaction and update the budget
-  const addTransaction = (transaction) => {
-    setTransactions((prev) => [...prev, transaction]);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const budgetRes = await axios.get("http://localhost:5556/budgets/all");
+        const transactionRes = await axios.get("http://localhost:5556/transactions/all");
+        const incomeRes = await axios.get("http://localhost:5556/incomes/all");
+        // console.log(budgetRes)
+        // console.log(transactionRes)
+        // console.log(incomeRes)
+        
+        setBudgets(budgetRes.data);
+        setTransactions(transactionRes.data);
+        setIncomes(incomeRes.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
 
-    // Update the budget's spent amount if the transaction matches a budget name
-    setBudgets((prevBudgets) =>
-      prevBudgets.map((budget) =>
-        budget.name === transaction.budgetName
-          ? { ...budget, Spent: budget.Spent + transaction.amount }
-          : budget
-      )
-    );
+    fetchData();
+  }, []);
+
+  const addTransaction = async (transaction) => {
+    try {
+      const res = await axios.post("http://localhost:5556/transactions/add", transaction);
+      console.log(res.data)
+      setTransactions((prev) => [...prev, res.data]);
+
+      // Update the spent amount in budgets
+      setBudgets((prevBudgets) =>
+        prevBudgets.map((budget) =>
+          budget._id === transaction.budgetId
+            ? { ...budget, Spent: budget.Spent + transaction.amount }
+            : budget
+        )
+      );
+    } catch (error) {
+      console.error("Error adding transaction:", error);
+    }
   };
-
   // Function to add a new budget
-  const addBudget = (newBudget) => {
-    setBudgets((prevBudgets) => [...prevBudgets, { ...newBudget, Budget: Number(newBudget.Budget), Spent: 0 }]);
+  const addBudget = async (newBudget) => {
+    try {
+      const res = await axios.post("http://localhost:5556/budgets/add", newBudget);
+      setBudgets((prev) => [...prev, res.data]);
+    } catch (error) {
+      console.error("Error adding budget:", error);
+    }
   };
 
-  const addIncome=(newIncome)=>{
-    setIncomes((prev)=>[...prev,{...newIncome,money:Number(newIncome.money)}])
-  }
+  const addIncome = async (newIncome) => {
+    try {
+      const res = await axios.post("http://localhost:5556/incomes/add", newIncome);
+      setIncomes((prev) => [...prev, res.data]);
+    } catch (error) {
+      console.error("Error adding income:", error);
+    }
+  };
   return (
     <BudgetContext.Provider value={{ budgets, setBudgets, transactions,incomes, addTransaction, addBudget, addIncome }}>
       {children}

@@ -18,11 +18,10 @@ const Dashboard = () => {
       money: "",
       date: new Date().toISOString().split("T")[0], // Default to today
     });
-  const totalIncome = incomes.reduce((sum, money) => sum +money.money, 0);
+  const totalIncome = incomes.reduce((sum, money) => sum +money.amount, 0);
   const totalSpent = budgets.reduce((sum, budget) => sum + budget.Spent, 0);
   const remainingBalance = totalIncome - totalSpent;
 
-  
 
   const groupedBudgets = budgets.reduce((acc, budget) => {
     if (!acc[budget.category]) acc[budget.category] = [];
@@ -30,7 +29,7 @@ const Dashboard = () => {
     return acc;
   }, {});
 
-  const pieData = groupedBudgets[pietimeRange].map((budget) => ({
+  const pieData =(groupedBudgets[pietimeRange]||[] ).map((budget) => ({
     name: budget.name,
     value: budget.Spent,
   }));
@@ -46,9 +45,9 @@ const Dashboard = () => {
       return;
     }
     addIncome({
-      ...newIncome,
-      money: Number(newIncome.money),
-      date: newIncome.date,
+      source:newIncome.name,
+      amount:newIncome.money,
+      
     });
     setNewIncome({ name: "", money: "", date: new Date().toISOString().split("T")[0] });
     setIsModalOpen(false);
@@ -153,9 +152,9 @@ const Dashboard = () => {
                     {incomes.map((income, index) => (
                       <tr key={index}>
                         <td>{format(new Date(income.date), "dd/MM/yyyy")}</td>
-                        <td>{income.name}</td>
+                        <td>{income.source}</td>
                         <td>
-                          ₹{income.money}
+                          ₹{income.amount}
                         </td>
                       </tr>
                     ))}

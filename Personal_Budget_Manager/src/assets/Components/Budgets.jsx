@@ -11,11 +11,11 @@ import CloseIcon from "@mui/icons-material/Close";
 const Budgets = () => {
   const [openCategory, setOpenCategory] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const {budgets, setBudgets} = useBudget()
+  const {addBudget,budgets, setBudgets} = useBudget()
   const [newBudget, setNewBudget] = useState({
     category: "Monthly",
     name: "",
-    Budget: "",
+    budget: "",
     Spent: "",
   });
 
@@ -27,14 +27,19 @@ const Budgets = () => {
     setNewBudget({ ...newBudget, [e.target.name]: e.target.value });
   };
 
-  const addBudget = (e) => {
+  const handlebudgetadd = (e) => {
     e.preventDefault();
-    if (!newBudget.name || !newBudget.Budget) {
+    if (!newBudget.name || !newBudget.budget) {
       alert("Please fill all fields!");
       return;
     }
-    setBudgets([...budgets, { ...newBudget, Budget: Number(newBudget.Budget), Spent: Number(newBudget.Spent) }]);
-    setNewBudget({ category: "Monthly", name: "", Budget: "", Spent: "" }); 
+    addBudget({
+      category:newBudget.category,
+      name:newBudget.name,
+      budget:newBudget.budget,
+      Spent:0
+    });
+    setNewBudget({ category: "Monthly", name: "", budget: "", Spent: "" }); 
     setIsModalOpen(false); 
   };
 
@@ -63,12 +68,12 @@ const Budgets = () => {
                     .map((budget, idx) => (
                       <tr key={idx}>
                         <td className="budget-name">{budget.name}</td>
-                        <td className="budget-amount">₹{budget.Budget}</td>
+                        <td className="budget-amount">₹{budget.budget}</td>
                         <td className="budget-spent">₹{budget.Spent}</td>
                         <td className="budget-progress">
                           <CircularProgress
                             variant="determinate"
-                            value={(budget.Spent / budget.Budget) * 100}
+                            value={(budget.Spent / budget.budget) * 100}
                             size={30}
                           />
                         </td>
@@ -88,14 +93,14 @@ const Budgets = () => {
             <div className="modal">
               <CloseIcon className="close-icon" onClick={() => setIsModalOpen(false)} />
               <h3>Add New Budget</h3>
-              <form onSubmit={addBudget} className="add-budget-form">
+              <form onSubmit={handlebudgetadd} className="add-budget-form">
                 <select name="category" value={newBudget.category} onChange={handleChange}>
                   <option value="Monthly">Monthly</option>
                   <option value="Weekly">Weekly</option>
                   <option value="Custom">Custom</option>
                 </select>
                 <input type="text" name="name" placeholder="Budget Name" value={newBudget.name} onChange={handleChange} />
-                <input type="number" name="Budget" placeholder="Total Budget" value={newBudget.Budget} onChange={handleChange} />
+                <input type="number" name="budget" placeholder="Total Budget" value={newBudget.Budget} onChange={handleChange} />
                 <button type="submit">Add Budget</button>
               </form>
             </div>
