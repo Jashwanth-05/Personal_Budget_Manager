@@ -7,6 +7,29 @@
     top: 10vh;
     left: 23vw;
 }
+.budget-content {
+    max-height: 24vh;
+    overflow-y: auto;  /* Enable vertical scrolling */
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    background: #fff;
+  }
+
+  .budget-content::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
+
+.budget-content {
+    scrollbar-width: none;
+  }
+
+  .budget-content {
+    -ms-overflow-style: none;
+  }
+  
 .budgets-header{
     display: flex;
     align-items: center;

@@ -20,10 +20,10 @@ const Navbar = () => {
         <main className='navbar-main'>
           <nav>
             <ul>
-              <li><TextSnippetIcon /><span>Budgets</span></li>
-              <li><PaidIcon/><span>Transactions</span></li>
-              <li><DashboardIcon /><span>Dashboard</span></li>
-              <li><CalculateIcon /><span>Tax Calculation</span></li>
+              <Link to='/dashboard'><li><DashboardIcon /><span>Dashboard</span></li></Link>
+              <Link to='/budgets'><li><TextSnippetIcon /><span>Budgets</span></li></Link>
+              <Link to='/transactions'><li><PaidIcon/><span>Transactions</span></li></Link>
+              <Link><li><CalculateIcon /><span>Tax Calculation</span></li></Link>
             </ul>
           </nav>
         </main>

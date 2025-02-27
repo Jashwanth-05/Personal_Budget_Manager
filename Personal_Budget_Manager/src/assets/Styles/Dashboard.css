@@ -1,0 +1,236 @@
+/* Grid Layout */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    gap: 20px;
+    padding-top: 20px;
+    justify-items: center;
+    position: absolute;
+    top: 0vh;
+    left: 20vw;
+  }
+  
+  /* Dashboard Cards */
+  .dashboard-card {
+    background-color: #f5f5f5;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+
+  /* Pie Chart */
+  .chart-card {
+    background: linear-gradient(135deg, #ff0f7b, #f89b29);
+    display: flex;
+    min-height: 80px; 
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .chart-card select{
+    padding: 8px;
+  border-radius: 5px;
+  border: none;
+  outline: none;
+  background-color: #222;
+  color: white;
+  }
+  .recharts-legend-item text {
+    fill: white !important;  /* Change legend text color */
+    font-weight: bold;
+}
+  /* Legend Scrollable */
+  .recharts-legend-wrapper::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Bar Chart */
+  .bar-chart-card {
+    background: linear-gradient(70deg, #1f7ea1, #6ff7e8);
+    width: 35vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+  
+  /* Filter Buttons */
+  .filter-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .filter-container button {
+    padding: 8px 12px;
+    border: none;
+    background-color: black;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  
+  .filter-container button:hover {
+    background-color: gray;
+  }
+  
+  /* Date Filter Inputs */
+  .date-filter {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    display: flex;
+    gap: 10px;
+    top:7vh;
+    right:1vw;
+    margin-bottom: 15px;
+  }
+  
+  .date-filter input {
+    padding: 5px;
+    border: 3px solid black;
+    border-radius: 5px;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .dashboard-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+
+  /* Main Income & Pocket Card */
+  .income-card h3{
+    margin: 0;
+    padding: 0;
+  }
+.income-card {
+  background: linear-gradient(135deg, #2d89ff, #00c6ff);
+  color: white;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 20vw;
+  position: relative;
+}
+
+/* Income & Remaining Sections */
+.income-section, .remaining-section {
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+}
+
+.income-section p, .remaining-section p {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+/* Progress Bar */
+.progress-bar {
+  width: 100%;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 5px;
+  margin-top: 10px;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #ffbb28;
+  border-radius: 5px;
+  transition: width 0.5s ease-in-out;
+}
+.income{
+  background: linear-gradient(70deg,#b57bee,#392d69);
+  width: 35vw;
+}
+.income-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.income-title {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.add-income-btn {
+  cursor: pointer;
+  font-size: 28px;
+  color: white;
+  transition: transform 0.2s;
+}
+.add-income-btn{
+  padding: 5px;
+  border:1px solid white;
+  border-radius: 100%;
+}
+.add-income-btn:hover {
+  transform: scale(1.1);
+}
+
+
+.income-table-container {
+  max-height: 20vh; /* Adjust as needed */
+  overflow-y: auto;
+  border: 3px solid black;
+  border-radius: 5px;
+  scrollbar-width: none; /* Hide scrollbar for Firefox */
+  -ms-overflow-style: none; /* Hide scrollbar for IE/Edge */
+}
+
+/* Hide scrollbar for Chrome, Safari, and Edge */
+.income-table-container::-webkit-scrollbar {
+  display: none;
+}
+.income-table {
+  width: 100%;
+  border-collapse: collapse;
+
+}
+/* Fix table header */
+.income-table thead {
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 100;
+}
+
+.income-table th, .income-table td {
+  padding: 10px;
+  color: white;
+  font-weight: 500;
+  /* border: 1px solid #ddd; */
+  text-align: left;
+}
+
+.income-table th {
+  background-color: black;
+  color: white;
+}
+
+.income-table .amount {
+  font-weight: bold;
+  color: green;
+}
+
+.income-table .amount.negative {
+  color: red;
+}
+
+/* Spending Info */
+.spending-info {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}

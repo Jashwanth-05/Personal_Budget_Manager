@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Navbar from "./Navbar";
 import "../Styles/Budgets.css";
+import {useBudget} from "./Contexts/BudgetContext"
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -9,12 +10,8 @@ import CloseIcon from "@mui/icons-material/Close";
 
 const Budgets = () => {
   const [openCategory, setOpenCategory] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false); // State for overlay modal
-  const [budgets, setBudgets] = useState([
-    { category: "Monthly", name: "Groceries", Budget: 1000, Spent: 500 },
-    { category: "Weekly", name: "Transport", Budget: 250, Spent: 100 },
-    { category: "Custom", name: "Vacation", Budget: 400, Spent: 150 },
-  ]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const {budgets, setBudgets} = useBudget()
   const [newBudget, setNewBudget] = useState({
     category: "Monthly",
     name: "",
@@ -22,17 +19,14 @@ const Budgets = () => {
     Spent: "",
   });
 
-  // Toggle category dropdown
   const toggleCategory = (category) => {
     setOpenCategory(openCategory === category ? null : category);
   };
 
-  // Handle form input change
   const handleChange = (e) => {
     setNewBudget({ ...newBudget, [e.target.name]: e.target.value });
   };
 
-  // Add new budget
   const addBudget = (e) => {
     e.preventDefault();
     if (!newBudget.name || !newBudget.Budget) {
@@ -40,8 +34,8 @@ const Budgets = () => {
       return;
     }
     setBudgets([...budgets, { ...newBudget, Budget: Number(newBudget.Budget), Spent: Number(newBudget.Spent) }]);
-    setNewBudget({ category: "Monthly", name: "", Budget: "", Spent: "" }); // Reset form
-    setIsModalOpen(false); // Close the modal after adding budget
+    setNewBudget({ category: "Monthly", name: "", Budget: "", Spent: "" }); 
+    setIsModalOpen(false); 
   };
 
   return (
@@ -53,7 +47,6 @@ const Budgets = () => {
           <AddIcon className="add-icon" onClick={() => setIsModalOpen(true)} />
         </div>
 
-        {/* Budget Categories */}
         {["Monthly", "Weekly", "Custom"].map((category, index) => (
           <div key={index} className="budget-category">
             <div className="budgets-subtitle" onClick={() => toggleCategory(category)}>
@@ -62,31 +55,34 @@ const Budgets = () => {
             </div>
 
             {openCategory === category && (
-              <table className="budget-table" >
-              <tbody>
-                {budgets
-                  .filter((budget) => budget.category === category)
-                  .map((budget, idx) => (
-                    <tr key={idx}>
-                      <td className="budget-name">{budget.name}</td>
-                      <td className="budget-amount">₹{budget.Budget}</td>
-                      <td className="budget-spent">₹{budget.Spent}</td>
-                      <td className="budget-progress">
-                        <CircularProgress
-                          variant="determinate"
-                          value={(budget.Spent / budget.Budget) * 100}
-                          size={30} // Adjust size as needed
-                        />
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-            )}
+            <div className="budget-content">
+              <table className="budget-table">
+                <tbody>
+                  {budgets
+                    .filter((budget) => budget.category === category)
+                    .map((budget, idx) => (
+                      <tr key={idx}>
+                        <td className="budget-name">{budget.name}</td>
+                        <td className="budget-amount">₹{budget.Budget}</td>
+                        <td className="budget-spent">₹{budget.Spent}</td>
+                        <td className="budget-progress">
+                          <CircularProgress
+                            variant="determinate"
+                            value={(budget.Spent / budget.Budget) * 100}
+                            size={30}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
           </div>
         ))}
 
-        {/* Overlay Modal for Adding Budget */}
+    
         {isModalOpen && (
           <div className="overlay">
             <div className="modal">

@@ -6,9 +6,13 @@ import Signup from './assets/Components/Signup';
 import Login from './assets/Components/Login';
 import Navbar from './assets/Components/Navbar';
 import Budgets from './assets/Components/Budgets';
+import Transactions from './assets/Components/Transactions';
+import { BudgetProvider } from './assets/Components/Contexts/BudgetContext';
+import Dashboard from './assets/Components/Dashboard';
 function App() {
   return (
     <>
+    <BudgetProvider>
       <BrowserRouter>
         <Routes>
           <Route path='/' element={<Home />}></Route>
@@ -16,9 +20,11 @@ function App() {
           <Route path='/signup' element={<Signup />}></Route>
           <Route path='/navbar' element={<Navbar />}></Route>
           <Route path='/budgets' element={<Budgets />}></Route>
+          <Route path='/transactions' element={<Transactions />}></Route>
+          <Route path='/dashboard' element={<Dashboard/>}></Route>
         </Routes>
       </BrowserRouter>
-      
+      </BudgetProvider>
     </>
   )
 }
