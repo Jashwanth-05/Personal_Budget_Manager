@@ -37,7 +37,7 @@ const Navbar = () => {
             <h1 className='title' style={{margin:"0"}}><span style={{color:"#0F9D58",fontFamily: '"Bebas Neue", serif'}}>P</span><span style={{color:"#F4B400",fontFamily: '"Bebas Neue", serif'}}>B</span><span style={{color:"#DB4437",fontFamily: '"Bebas Neue", serif'}}>M</span></h1>
             </div>
         <div className='navbar-profile'>
-          <span onClick={handleShowProfile}><PersonIcon style={{fontSize:"30px"}}  /></span>
+          <span onClick={showProfile==false?handleShowProfile:()=>setShowProfile(false)}><PersonIcon style={{fontSize:"30px"}}  /></span>
         </div>
         </header>
         <main className='navbar-main'>

@@ -164,6 +164,35 @@ app.post("/budgets/add",verifyToken, async (req, res) => {
   }
   });
 
+  app.put("/updateProfilePicture", verifyToken, async (req, res) => {
+    try {
+      const { profileImage } = req.body;
+      const userId = req.user?.id; 
+      if (!profileImage) {
+        return res.status(400).json({ message: "Profile image URL is required" });
+      }
+  
+
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { $set: { profileImage } }, 
+        { new: true, runValidators: true }
+      );
+  
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+  
+      res.status(200).json({
+        message: "Profile picture updated successfully",
+        profileImage: updatedUser.profileImage,
+      });
+    } catch (error) {
+      console.error("Error updating profile picture:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   app.post("/login", async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -178,8 +207,8 @@ app.post("/budgets/add",verifyToken, async (req, res) => {
 
         // Generate JWT Token
         const token = jwt.sign({ id: user._id }, process.env.SECRET_KEY, { expiresIn: "1h" });
-
-        res.status(200).json({ token, user: { id: user._id, name: user.name, email: user.email } });
+        console.log(user)
+        res.status(200).json({ token, user: { id: user._id, name: user.name, email: user.email,profileImage:user.profileImage } });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

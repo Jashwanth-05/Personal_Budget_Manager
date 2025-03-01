@@ -144,7 +144,7 @@ const Transactions = () => {
                 </select>
                 <input type="date" name="date" value={newTransaction.date} onChange={handleChange} />
                 <input type="number" name="amount" placeholder="Amount" value={newTransaction.amount} onChange={handleChange} />
-                <input type="text" name="description" placeholder="Description" value={newTransaction.description} onChange={handleChange} />
+                <input type="text" name="description" placeholder="Description" value={newTransaction.description} maxLength={25} onChange={handleChange} />
                 <button type="submit">Add Transaction</button>
               </form>
             </div>
