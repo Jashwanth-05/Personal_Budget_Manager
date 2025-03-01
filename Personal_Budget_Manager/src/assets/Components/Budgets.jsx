@@ -4,14 +4,15 @@ import "../Styles/Budgets.css";
 import {useBudget} from "./Contexts/BudgetContext"
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
-import CircularProgress from "@mui/material/CircularProgress";
+import { List, ListItem, ListItemText, IconButton, Typography, CircularProgress } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
 import CloseIcon from "@mui/icons-material/Close";
 
 const Budgets = () => {
   const [openCategory, setOpenCategory] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const {addBudget,budgets, setBudgets} = useBudget()
+  const {addBudget,budgets, delBudget,setBudgets,user} = useBudget()
   const [newBudget, setNewBudget] = useState({
     category: "Monthly",
     name: "",
@@ -34,6 +35,7 @@ const Budgets = () => {
       return;
     }
     addBudget({
+      userId:user.id,
       category:newBudget.category,
       name:newBudget.name,
       budget:newBudget.budget,
@@ -76,6 +78,11 @@ const Budgets = () => {
                             value={(budget.Spent / budget.budget) * 100}
                             size={30}
                           />
+                        </td>
+                        <td>
+                        <IconButton edge="end" color="error" onClick={() => delBudget(budget._id)}>
+                        <DeleteIcon />
+                        </IconButton>
                         </td>
                       </tr>
                     ))}

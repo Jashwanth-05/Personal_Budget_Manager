@@ -9,6 +9,8 @@ import Budgets from './assets/Components/Budgets';
 import Transactions from './assets/Components/Transactions';
 import { BudgetProvider } from './assets/Components/Contexts/BudgetContext';
 import Dashboard from './assets/Components/Dashboard';
+import Profile from './assets/Components/Profile';
+import ProtectedRoute from './assets/Components/ProtectedComponent';
 function App() {
   return (
     <>
@@ -18,10 +20,13 @@ function App() {
           <Route path='/' element={<Home />}></Route>
           <Route path='/login' element={<Login />}></Route>
           <Route path='/signup' element={<Signup />}></Route>
-          <Route path='/navbar' element={<Navbar />}></Route>
-          <Route path='/budgets' element={<Budgets />}></Route>
-          <Route path='/transactions' element={<Transactions />}></Route>
-          <Route path='/dashboard' element={<Dashboard/>}></Route>
+          <Route element={<ProtectedRoute />}>
+            <Route path='/navbar' element={<Navbar />}></Route>
+            <Route path='/budgets' element={<Budgets />}></Route>
+            <Route path='/transactions' element={<Transactions />}></Route>
+            <Route path='/dashboard' element={<Dashboard/>}></Route>
+            <Route path='/profile' element={<Profile/>}></Route>
+          </Route>
         </Routes>
       </BrowserRouter>
       </BudgetProvider>

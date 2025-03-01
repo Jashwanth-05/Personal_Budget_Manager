@@ -3,11 +3,11 @@
     display: grid;
     grid-template-columns: repeat(2,1fr);
     gap: 20px;
-    padding-top: 20px;
+    padding-top: 10px;
     justify-items: center;
     position: absolute;
     top: 0vh;
-    left: 20vw;
+    left: 19vw;
   }
   
   /* Dashboard Cards */

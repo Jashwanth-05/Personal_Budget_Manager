@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import Navbar from "./Navbar";
 import "../Styles/Transactions.css";
 import { useBudget } from "./Contexts/BudgetContext";
+import { List, ListItem, ListItemText, IconButton, Typography, CircularProgress } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { format, isWithinInterval, subDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns";
 
 const Transactions = () => {
-  const { transactions, addTransaction, budgets } = useBudget();
+  const { transactions, addTransaction, delTransaction,budgets ,user} = useBudget();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filter, setFilter] = useState("monthly");
   const [customRange, setCustomRange] = useState({ start: "", end: "" });
@@ -61,6 +63,7 @@ const Transactions = () => {
       return;
     }
     addTransaction({
+      userId:user.id,
       budgetId: newTransaction.budgetId,
       description: newTransaction.description,
       amount: Number(newTransaction.amount),
@@ -76,7 +79,8 @@ const Transactions = () => {
       <main className="transactions-main">
         <div className="transactions-header">
           <h2 className="transactions-title">Transactions</h2>
-          <div className="filter-container">
+
+         <div className="filter-container">
             <label>Filter:</label>
             <select value={filter} onChange={handleFilterChange}>
               <option value="monthly">Monthly</option>
@@ -100,6 +104,7 @@ const Transactions = () => {
               <th>Budget Name</th>
               <th>Description</th>
               <th>Amount</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -111,6 +116,12 @@ const Transactions = () => {
                 <td className="amount">
                   ₹{transaction.amount}
                 </td>
+                <td>
+                <IconButton edge="end" color="error" onClick={() => delTransaction(transaction._id)}>
+                <DeleteIcon />
+                </IconButton>
+                </td>
+                
               </tr>
             ))}
           </tbody>

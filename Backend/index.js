@@ -10,7 +10,9 @@ app.use(cors())
 const PORT = 5556
 const Budget = require("./Models/Budget");
 const Transaction = require("./Models/Transaction");
+const jwt = require("jsonwebtoken");
 const Income = require("./Models/Income");
+const User = require("./Models/User");
 
 
 mdb.connect(process.env.MONGODB_URL).then(()=>{
@@ -18,20 +20,35 @@ mdb.connect(process.env.MONGODB_URL).then(()=>{
 }).catch((err)=>{
     console.log("MDB Connection Failed", err)
 })
+const verifyToken = (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1]; // Extract token after "Bearer"
+    if (!token) {
+      return res.status(401).json({ message: "Access Denied" });
+    }
 
-app.get("/budgets/all", async (req, res) => {
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(403).json({ message: "Invalid or Expired Token" });
+  }
+};
+app.post("/budgets/all",verifyToken, async (req, res) => {
+    const {userId}=req.body;
     try {
-      const budgets = await Budget.find();
+      const budgets = await Budget.find({userId:userId});
       res.json(budgets);
     } catch (err) {
       res.status(500).json({ message: err.message });
     }
   });
 
-app.post("/budgets/add", async (req, res) => {
-    const { category, name, budget, Spent } = req.body;
+app.post("/budgets/add",verifyToken, async (req, res) => {
+    const { userId,category, name, budget, Spent } = req.body;
     try {
-      const newBudget = new Budget ({ category, name, budget, Spent });
+      const newBudget = new Budget ({userId,category, name, budget, Spent });
       await newBudget.save();
       res.status(201).json(newBudget);
     } catch (err) {
@@ -39,20 +56,30 @@ app.post("/budgets/add", async (req, res) => {
     }
   });
 
-  app.get("/transactions/all", async (req, res) => {
+  app.delete("/budgets/del/:id", async (req, res) => {
     try {
-      const transactions = await Transaction.find().populate("budgetId", "name category");
+      await Budget.findByIdAndDelete(req.params.id);
+      res.json({ message: "Budget deleted successfully" });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.post("/transactions/all",verifyToken, async (req, res) => {
+    const {userId}=req.body;
+    try {
+      const transactions = await Transaction.find({userId:userId}).populate("budgetId", "name category");
       res.json(transactions);
     } catch (err) {
       res.status(500).json({ message: err.message });
     }
   });
 
-  app.post("/transactions/add", async (req, res) => {
-    const { budgetId,name, amount, description } = req.body;
+  app.post("/transactions/add",verifyToken, async (req, res) => {
+    const { userId,budgetId,name, amount, description } = req.body;
     try {
       const curBudget=await Budget.findById(budgetId);
-      const newTransaction = new Transaction({ budgetId,budgetName:curBudget.name, amount, description });
+      const newTransaction = new Transaction({ userId,budgetId,budgetName:curBudget.name, amount, description });
       await newTransaction.save();
   
       // Update budget's spent amount
@@ -67,25 +94,100 @@ app.post("/budgets/add", async (req, res) => {
     }
   });
 
-
-  app.get("/incomes/all", async (req, res) => {
+  app.delete("/transactions/del/:id", async (req, res) => {
     try {
-      const income = await Income.find();
+      const transaction = await Transaction.findById(req.params.id);
+      if (!transaction) return res.status(404).json({ message: "Transaction not found" });
+  
+      // Reduce spent amount from the budget
+      await Budget.findByIdAndUpdate(transaction.budgetId, { $inc: { Spent: -transaction.amount } });
+  
+      await transaction.deleteOne();
+      res.json({ message: "Transaction deleted successfully" });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+  
+
+
+  app.post("/incomes/all",verifyToken, async (req, res) => {
+    const {userId}=req.body;
+    try {
+      const income = await Income.find({userId:userId});
       res.json(income);
     } catch (err) {
       res.status(500).json({ message: err.message });
     }
   });
 
-  app.post("/incomes/add", async (req, res) => {
-    const { source, amount,date } = req.body;
+  app.post("/incomes/add",verifyToken, async (req, res) => {
+    const { userId,source, amount,date } = req.body;
     try {
-      const newIncome = new Income({ source, amount,date });
+      const newIncome = new Income({ userId,source, amount,date });
       await newIncome.save();
       res.status(201).json(newIncome);
     } catch (err) {
       res.status(400).json({ message: err.message });
     }
   });
+
+  app.delete("/incomes/del/:id", async (req, res) => {
+    try {
+      await Income.findByIdAndDelete(req.params.id);
+      res.json({ message: "Income entry deleted successfully" });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // Signup Route
+  app.post("/signup", async (req, res) => {
+  try {
+      const { FirstName,LastName, email, password } = req.body;
+      const name=FirstName+LastName
+      // Check if user already exists
+      let user = await User.findOne({ email });
+      if (user) return res.status(400).json({ message: "User already exists" });
+
+      // Hash Password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      // Create User
+      newuser = new User({name, email, password: hashedPassword });
+      await newuser.save();
+      const token = jwt.sign({ id: newuser._id }, process.env.SECRET_KEY, { expiresIn: "1h" });
+      res.status(201).json({ message: "User registered successfully",token,user: { id: newuser._id, name: newuser.name, email: newuser.email } });
+  } catch (err) {
+      res.status(500).json({ error: err.message });
+  }
+  });
+
+  app.post("/login", async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // Find User
+        const user = await User.findOne({ email });
+        if (!user) return res.status(400).json({ message: "Invalid email or password" });
+
+        // Compare Password
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
+
+        // Generate JWT Token
+        const token = jwt.sign({ id: user._id }, process.env.SECRET_KEY, { expiresIn: "1h" });
+
+        res.status(200).json({ token, user: { id: user._id, name: user.name, email: user.email } });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+  app.post("/verify",verifyToken,(req,res)=>{
+      res.status(200).json({"message":"TokenVerified"})
+  });
+
 
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

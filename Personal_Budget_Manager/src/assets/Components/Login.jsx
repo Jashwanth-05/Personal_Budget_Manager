@@ -1,8 +1,39 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import "../Styles/Login.css"
+import API from "../../axiosInstance";
+import { useBudget } from "./Contexts/BudgetContext"; 
+import { useNavigate } from 'react-router-dom';
 import HomeIcon from '@mui/icons-material/Home';
 const Login = () => {
+    const [form,setForm]=useState({email:"",password:""})
+    const [error, setError] = useState("");
+    const { setUser } = useBudget();
+    const navigate=useNavigate()
+    const handleChange=(e)=>{
+        const cur=e.target.name
+        const val=e.target.value
+        setForm((old)=>{
+            return {...old,[cur]:val}
+        })
+        console.log(form)
+    }
+    const handleLogin=async(e)=>{
+        e.preventDefault()
+        setError("");
+        try {
+            const res = await API.post("/login",form );
+            
+            if (res.data.token) {
+              localStorage.setItem("token", res.data.token);
+              setUser(res.data.user);
+              localStorage.setItem("user", JSON.stringify(res.data.user));
+              navigate("/dashboard");
+            }
+          } catch (err) {
+            setError(err.response?.data?.message || "Login failed");
+          };
+    }
   return (
     <div>
     <header className='login-header'>
@@ -23,11 +54,11 @@ const Login = () => {
                     <span>Log in</span>
                 </div>
                 <label htmlFor="Email">Email:</label>
-                <input type="email" id='Email'/>
+                <input name="email" type="email" id='Email' onChange={(e)=>{handleChange(e)}}/>
                 <label htmlFor="Password">Password:</label>
-                <input type="password" id='Password'/>
+                <input name='password' type="password" id='Password' onChange={(e)=>{handleChange(e)}}/>
                 <div className='login-bt'>
-                    <button>Login</button>
+                    <button onClick={handleLogin}>Login</button>
                 </div>
                 <div className='login-redirect'>
                     <span>Create new account?<Link to="/signup" className='nav-link'>Signup</Link></span>

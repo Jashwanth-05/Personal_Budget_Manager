@@ -1,9 +1,9 @@
 .transactions-main{
     position: absolute;
-    width: 70vw;
+    width: 60vw;
     height: 80vh;
     top: 10vh;
-    left: 25vw;
+    left: 30vw;
 }
 
   
@@ -69,6 +69,7 @@
   .transactions-table-container {
     max-height: 70vh; /* Adjust as needed */
     overflow-y: auto;
+    width: 60vw;
     border: 3px solid black;
     border-radius: 5px;
     scrollbar-width: none; /* Hide scrollbar for Firefox */
@@ -85,6 +86,8 @@
 
   }
   /* Fix table header */
+
+
 .transactions-table thead {
     position: sticky;
     top: 0;

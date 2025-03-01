@@ -2,13 +2,17 @@ import React, { useState } from "react";
 import Navbar from "./Navbar";
 import { useBudget } from "./Contexts/BudgetContext";
 import "../Styles/Dashboard.css";
+import { List, ListItem, ListItemText, IconButton, Typography, CircularProgress } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import { format, isWithinInterval, subDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns";
 const Dashboard = () => {
-  const { budgets, transactions,incomes,addIncome } = useBudget();
-  const [timeRange, setTimeRange] = useState("monthly");
+  const { budgets, transactions,incomes,addIncome,delIncome } = useBudget();
+  const user=JSON.parse(localStorage.getItem("user"))
+  console.log(user.id)
+  const [timeRange, setTimeRange] = useState("Monthly");
   const [pietimeRange,setPieTimeRange]=useState("Monthly");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
@@ -22,12 +26,12 @@ const Dashboard = () => {
   const totalSpent = budgets.reduce((sum, budget) => sum + budget.Spent, 0);
   const remainingBalance = totalIncome - totalSpent;
 
-
   const groupedBudgets = budgets.reduce((acc, budget) => {
     if (!acc[budget.category]) acc[budget.category] = [];
     acc[budget.category].push(budget);
     return acc;
   }, {});
+
 
   const pieData =(groupedBudgets[pietimeRange]||[] ).map((budget) => ({
     name: budget.name,
@@ -45,6 +49,7 @@ const Dashboard = () => {
       return;
     }
     addIncome({
+      userId:user.id,
       source:newIncome.name,
       amount:newIncome.money,
       
@@ -146,6 +151,7 @@ const Dashboard = () => {
                       <th>Date</th>
                       <th>Source</th>
                       <th>Amount</th>
+                      <th></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -155,6 +161,11 @@ const Dashboard = () => {
                         <td>{income.source}</td>
                         <td>
                           ₹{income.amount}
+                        </td>
+                        <td>
+                        <IconButton edge="end" color="error" onClick={() => delIncome(income._id)}>
+                        <DeleteIcon />
+                        </IconButton>
                         </td>
                       </tr>
                     ))}
@@ -231,7 +242,7 @@ const Dashboard = () => {
             </div>
           )}
 
-          <ResponsiveContainer width="100%" height={250}>
+          <ResponsiveContainer width="100%" height={250} >
             <BarChart data={barData} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
               <XAxis dataKey="name" stroke="white" angle={-15} textAnchor="end" />
               <YAxis stroke="white" />
