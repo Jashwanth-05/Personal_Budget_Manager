@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import Navbar from "./Navbar";
 import { useBudget } from "./Contexts/BudgetContext";
 import "../Styles/Dashboard.css";
-import { List, ListItem, ListItemText, IconButton, Typography, CircularProgress } from "@mui/material";
+import {IconButton} from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
-import { format, isWithinInterval, subDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns";
+import { format} from "date-fns";
 const Dashboard = () => {
   const { budgets, transactions,incomes,addIncome,delIncome } = useBudget();
   const user=JSON.parse(localStorage.getItem("user"))

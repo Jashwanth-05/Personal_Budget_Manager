@@ -46,7 +46,7 @@ const Navbar = () => {
               <Link to='/dashboard'><li><DashboardIcon /><span>Dashboard</span></li></Link>
               <Link to='/budgets'><li><TextSnippetIcon /><span>Budgets</span></li></Link>
               <Link to='/transactions'><li><PaidIcon/><span>Transactions</span></li></Link>
-              <Link><li><CalculateIcon /><span>Tax Calculation</span></li></Link>
+              <Link to='/taxcalc'><li><CalculateIcon /><span>Tax Calculation</span></li></Link>
             </ul>
           </nav>
          

@@ -10,6 +10,7 @@ export const BudgetProvider = ({ children }) => {
   const [budgets, setBudgets] = useState([]);
   const [incomes,setIncomes]=useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [calculations, setCalculations] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -18,6 +19,7 @@ export const BudgetProvider = ({ children }) => {
         const budgetRes = await API.post("/budgets/all",body);
         const transactionRes = await API.post("/transactions/all",body);
         const incomeRes = await API.post("/incomes/all",body);
+        const taxRes=await API.get(`/tax/all/${user.id}`);
         // console.log(budgetRes)
         // console.log(transactionRes)
         // console.log(incomeRes)
@@ -25,6 +27,7 @@ export const BudgetProvider = ({ children }) => {
         setBudgets(budgetRes.data);
         setTransactions(transactionRes.data);
         setIncomes(incomeRes.data);
+        setCalculations(taxRes.data);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -61,7 +64,7 @@ export const BudgetProvider = ({ children }) => {
     }
   }
 
-  // Function to add a new budget
+
   const addBudget = async (newBudget) => {
     try {
       const res = await API.post("/budgets/add", newBudget);
@@ -98,8 +101,27 @@ export const BudgetProvider = ({ children }) => {
       console.log("Error Deleting Income:",error);
     }
   }
+
+  const addTax=async (newTax)=>{
+    try{
+      const res=await API.post("/tax/add",newTax)
+      setCalculations((prev)=>([...prev,res.data]))
+    }
+    catch(error){
+      console.log("Error Adding Tax Calculaton",error);
+    }
+  }
+  const delTax=async(taxId)=>{
+    try{
+      await API.delete(`tax/del/${taxId}`);
+      setCalculations(calculations.filter((tax) => tax._id !== taxId));
+    }catch(error){
+      console.log("Error Deleting Tax Calculation",error);
+    }
+    
+  }
   return (
-    <BudgetContext.Provider value={{ budgets,delBudget,delIncome, setBudgets,setTransactions,delTransaction,setIncomes,setUser ,transactions,incomes, addTransaction, addBudget, addIncome,user }}>
+    <BudgetContext.Provider value={{ budgets,delBudget,delIncome,delTax,calculations,addTax, setBudgets,setTransactions,delTransaction,setIncomes,setUser ,transactions,incomes, addTransaction, addBudget, addIncome,user }}>
       {children}
     </BudgetContext.Provider>
   );

@@ -13,7 +13,7 @@ const Transaction = require("./Models/Transaction");
 const jwt = require("jsonwebtoken");
 const Income = require("./Models/Income");
 const User = require("./Models/User");
-
+const Tax =require("./Models/TaxSchema");
 
 mdb.connect(process.env.MONGODB_URL).then(()=>{
     console.log("MDB Connection Successful")
@@ -22,7 +22,7 @@ mdb.connect(process.env.MONGODB_URL).then(()=>{
 })
 const verifyToken = (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1]; // Extract token after "Bearer"
+    const token = req.headers.authorization?.split(" ")[1]; 
     if (!token) {
       return res.status(401).json({ message: "Access Denied" });
     }
@@ -56,7 +56,7 @@ app.post("/budgets/add",verifyToken, async (req, res) => {
     }
   });
 
-  app.delete("/budgets/del/:id", async (req, res) => {
+  app.delete("/budgets/del/:id",verifyToken, async (req, res) => {
     try {
       await Budget.findByIdAndDelete(req.params.id);
       res.json({ message: "Budget deleted successfully" });
@@ -82,7 +82,6 @@ app.post("/budgets/add",verifyToken, async (req, res) => {
       const newTransaction = new Transaction({ userId,budgetId,budgetName:curBudget.name, amount, description });
       await newTransaction.save();
   
-      // Update budget's spent amount
       await Budget.findByIdAndUpdate(budgetId, { $inc: { Spent: amount } });
       
       console.log(curBudget)
@@ -94,12 +93,11 @@ app.post("/budgets/add",verifyToken, async (req, res) => {
     }
   });
 
-  app.delete("/transactions/del/:id", async (req, res) => {
+  app.delete("/transactions/del/:id",verifyToken, async (req, res) => {
     try {
       const transaction = await Transaction.findById(req.params.id);
       if (!transaction) return res.status(404).json({ message: "Transaction not found" });
   
-      // Reduce spent amount from the budget
       await Budget.findByIdAndUpdate(transaction.budgetId, { $inc: { Spent: -transaction.amount } });
   
       await transaction.deleteOne();
@@ -132,7 +130,7 @@ app.post("/budgets/add",verifyToken, async (req, res) => {
     }
   });
 
-  app.delete("/incomes/del/:id", async (req, res) => {
+  app.delete("/incomes/del/:id",verifyToken, async (req, res) => {
     try {
       await Income.findByIdAndDelete(req.params.id);
       res.json({ message: "Income entry deleted successfully" });
@@ -141,20 +139,48 @@ app.post("/budgets/add",verifyToken, async (req, res) => {
     }
   });
 
-  // Signup Route
+  app.post("/tax/add",verifyToken, async (req, res) => {
+    const {userId,category,price,description,taxRate,taxAmount,basePrice}=req.body;
+    try {
+      const newEntry = new Tax({userId,category,price,description,taxRate,taxAmount,basePrice});
+      await newEntry.save();
+      res.status(201).json(newEntry);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get("/tax/all/:id",verifyToken, async (req, res) => {
+    try {
+      const userId = req.params.id;
+      const calculations = await Tax.find({ userId });
+      res.status(200).json(calculations);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+
+  app.delete("/tax/del/:id",verifyToken, async (req, res) => {
+    try {
+      await Tax.findByIdAndDelete(req.params.id);
+      res.status(200).json({ message: "Deleted successfully" });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   app.post("/signup", async (req, res) => {
   try {
       const { FirstName,LastName, email, password } = req.body;
       const name=FirstName+LastName
-      // Check if user already exists
+
       let user = await User.findOne({ email });
       if (user) return res.status(400).json({ message: "User already exists" });
 
-      // Hash Password
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
-      // Create User
       newuser = new User({name, email, password: hashedPassword });
       await newuser.save();
       const token = jwt.sign({ id: newuser._id }, process.env.SECRET_KEY, { expiresIn: "1h" });
@@ -171,8 +197,6 @@ app.post("/budgets/add",verifyToken, async (req, res) => {
       if (!profileImage) {
         return res.status(400).json({ message: "Profile image URL is required" });
       }
-  
-
       const updatedUser = await User.findByIdAndUpdate(
         userId,
         { $set: { profileImage } }, 
@@ -196,16 +220,11 @@ app.post("/budgets/add",verifyToken, async (req, res) => {
   app.post("/login", async (req, res) => {
     try {
         const { email, password } = req.body;
-
-        // Find User
         const user = await User.findOne({ email });
         if (!user) return res.status(400).json({ message: "Invalid email or password" });
-
-        // Compare Password
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
 
-        // Generate JWT Token
         const token = jwt.sign({ id: user._id }, process.env.SECRET_KEY, { expiresIn: "1h" });
         console.log(user)
         res.status(200).json({ token, user: { id: user._id, name: user.name, email: user.email,profileImage:user.profileImage } });

@@ -1,0 +1,110 @@
+/* Parent Wrapper */
+.gst-calculator-container {
+    position: absolute;
+    top: 25%;
+    left: 24vw;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    padding: 20px;
+  }
+  
+  /* Tax Calculator Box */
+  .gst-calculator {
+    border: 3px solid black;
+    width: 20vw;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    background: #fff;
+  }
+  
+  .gst-calculator h2 {
+    text-align: center;
+    color: #333;
+  }
+  
+  .gst-calculator label {
+    display: block;
+    font-weight: bold;
+    margin: 10px 0 5px;
+  }
+  
+  .gst-calculator input,
+  .gst-calculator select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .gst-calculator button {
+    width: 100%;
+    padding: 10px;
+    background: black;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .gst-calculator button:hover {
+    background: gray;
+  }
+  
+  /* Tax Calculation Table */
+  .gst-table-container {
+    width: 45vw;
+    padding: 20px;
+    max-height: 41vh;
+    border-radius: 8px;
+    border: 3px solid black;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Scrollable Table Wrapper */
+  .gst-table-wrapper {
+    overflow-y: auto;
+    max-height: 30vh;
+    border: 3px solid black;
+    scrollbar-width: none; /* Hide scrollbar for Firefox */
+    -ms-overflow-style: none; /* Hide scrollbar for IE/Edge */
+  }
+  
+  .gst-table-wrapper::-webkit-scrollbar {
+    display: none;
+  }
+  
+  
+  .gst-table-container table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+  }
+  
+  .gst-table-container thead {
+    position: sticky;
+    top: 0;
+    background: black;
+    z-index: 2;
+  }
+  
+  .gst-table-container th, .gst-table-container td {
+    padding: 10px;
+    text-align: center;
+  }
+  
+  .gst-table-container th {
+    background-color: black;
+    color: white;
+  }
+  
+
+.gst-calculator select {
+    margin-bottom: 15px;
+  }
+  

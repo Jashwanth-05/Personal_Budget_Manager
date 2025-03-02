@@ -11,6 +11,7 @@ import { BudgetProvider } from './assets/Components/Contexts/BudgetContext';
 import Dashboard from './assets/Components/Dashboard';
 import Profile from './assets/Components/Profile';
 import ProtectedRoute from './assets/Components/ProtectedComponent';
+import TaxCalculator from './assets/Components/TaxCalculations';
 function App() {
   return (
     <>
@@ -26,6 +27,7 @@ function App() {
             <Route path='/transactions' element={<Transactions />}></Route>
             <Route path='/dashboard' element={<Dashboard/>}></Route>
             <Route path='/profile' element={<Profile/>}></Route>
+            <Route path='/taxcalc' element={<TaxCalculator/>}></Route>
           </Route>
         </Routes>
       </BrowserRouter>
