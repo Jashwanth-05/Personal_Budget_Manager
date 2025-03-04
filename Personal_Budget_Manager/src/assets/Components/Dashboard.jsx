@@ -11,7 +11,6 @@ import { format} from "date-fns";
 const Dashboard = () => {
   const { budgets, transactions,incomes,addIncome,delIncome } = useBudget();
   const user=JSON.parse(localStorage.getItem("user"))
-  console.log(user.id)
   const [timeRange, setTimeRange] = useState("Monthly");
   const [pietimeRange,setPieTimeRange]=useState("Monthly");
   const [customStartDate, setCustomStartDate] = useState("");
@@ -52,13 +51,13 @@ const Dashboard = () => {
       userId:user.id,
       source:newIncome.name,
       amount:newIncome.money,
-      
+      date:new Date(newIncome.date)
     });
     setNewIncome({ name: "", money: "", date: new Date().toISOString().split("T")[0] });
     setIsModalOpen(false);
   };
 
-  // 🟢 Group Transactions Based on Time Filter
+
   const groupTransactions = () => {
     const grouped = {};
     const filteredTransactions = transactions.filter((t) => {
@@ -73,11 +72,11 @@ const Dashboard = () => {
       const date = new Date(t.date);
       let key;
       if (timeRange === "monthly") {
-        key = date.toLocaleString("default", { month: "short" }); // Ex: Jan, Feb
+        key = date.toLocaleString("default", { month: "short" }); 
       } else if (timeRange === "daily") {
-        key = date.toLocaleDateString(); // Ex: 02/27/2025
+        key = date.toLocaleDateString(); 
       } else {
-        key = date.toISOString().split("T")[0]; // Ex: 2025-02-27 (Custom Date Format)
+        key = date.toISOString().split("T")[0]; 
       }
       if (!grouped[key]) grouped[key] = {};
       if (!grouped[key][t.description]) grouped[key][t.description] = 0;
@@ -85,7 +84,7 @@ const Dashboard = () => {
     });
 
     return Object.keys(grouped)
-      .sort((a, b) => new Date(a) - new Date(b)) // Sort X-axis by Date
+      .sort((a, b) => new Date(a) - new Date(b))
       .map((key) => ({
         name: key,
         ...grouped[key],
@@ -93,15 +92,15 @@ const Dashboard = () => {
   };
 
   const getRandomLightColor = () => {
-    const r = Math.floor(Math.random() * 156) + 100; // 100-255
-    const g = Math.floor(Math.random() * 156) + 100; // 100-255
-    const b = Math.floor(Math.random() * 156) + 100; // 100-255
+    const r = Math.floor(Math.random() * 156) + 100; 
+    const g = Math.floor(Math.random() * 156) + 100; 
+    const b = Math.floor(Math.random() * 156) + 100; 
     return `rgb(${r}, ${g}, ${b})`;
   };
   
 
   const getRandomDarkColor = () => {
-    const r = Math.floor(Math.random() * 156); // Limit max to 155 for dark shades
+    const r = Math.floor(Math.random() * 156); 
     const g = Math.floor(Math.random() * 156);
     const b = Math.floor(Math.random() * 156);
     return `rgb(${r},${g},${b})`;
@@ -125,7 +124,7 @@ const Dashboard = () => {
         <p>₹{remainingBalance}</p>
       </div>
 
-      {/* Spending Progress Bar */}
+
       <div className="progress-bar">
         <div
           className="progress-fill"

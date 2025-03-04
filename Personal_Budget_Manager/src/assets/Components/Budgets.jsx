@@ -5,6 +5,7 @@ import {useBudget} from "./Contexts/BudgetContext"
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import { List, ListItem, ListItemText, IconButton, Typography, CircularProgress } from "@mui/material";
+import { format, isWithinInterval, subDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CloseIcon from "@mui/icons-material/Close";
@@ -18,6 +19,7 @@ const Budgets = () => {
     name: "",
     budget: "",
     Spent: "",
+    valid:"",
   });
 
   const toggleCategory = (category) => {
@@ -30,18 +32,28 @@ const Budgets = () => {
 
   const handlebudgetadd = (e) => {
     e.preventDefault();
-    if (!newBudget.name || !newBudget.budget) {
+    if (!newBudget.name || !newBudget.budget || (newBudget.category==="Custom" && !newBudget.valid)) {
       alert("Please fill all fields!");
       return;
+    }
+
+    let date=new Date();
+    if(newBudget.category==="Monthly"){
+      date=endOfMonth(date);
+    }else if(newBudget.category==="Weekly"){
+      date=endOfWeek(date);
+    }else{
+      date=new Date(newBudget.valid);
     }
     addBudget({
       userId:user.id,
       category:newBudget.category,
       name:newBudget.name,
       budget:newBudget.budget,
-      Spent:0
+      Spent:0,
+      valid:date
     });
-    setNewBudget({ category: "Monthly", name: "", budget: "", Spent: "" }); 
+    setNewBudget({ category: "Monthly", name: "", budget: "", Spent: "",valid:""}); 
     setIsModalOpen(false); 
   };
 
@@ -65,8 +77,9 @@ const Budgets = () => {
             <div className="budget-content">
               <table className="budget-table">
                 <tbody>
-                  {budgets
-                    .filter((budget) => budget.category === category)
+                  {budgets.filter((budget) => {
+                      return budget.category === category;
+                    })
                     .map((budget, idx) => (
                       <tr key={idx}>
                         <td className="budget-name">{budget.name}</td>
@@ -107,7 +120,9 @@ const Budgets = () => {
                   <option value="Custom">Custom</option>
                 </select>
                 <input type="text" name="name" placeholder="Budget Name" value={newBudget.name} onChange={handleChange} />
+                {newBudget.category==="Custom" && <input type="date" name="valid" placeholder="Validity" value={newBudget.valid} onChange={handleChange} />}
                 <input type="number" name="budget" placeholder="Total Budget" value={newBudget.Budget} onChange={handleChange} />
+                
                 <button type="submit">Add Budget</button>
               </form>
             </div>

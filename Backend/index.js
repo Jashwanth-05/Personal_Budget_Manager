@@ -46,15 +46,26 @@ app.post("/budgets/all",verifyToken, async (req, res) => {
   });
 
 app.post("/budgets/add",verifyToken, async (req, res) => {
-    const { userId,category, name, budget, Spent } = req.body;
+    const { userId,category, name, budget, Spent,valid } = req.body;
     try {
-      const newBudget = new Budget ({userId,category, name, budget, Spent });
+      const newBudget = new Budget ({userId,category, name, budget, Spent,valid });
       await newBudget.save();
       res.status(201).json(newBudget);
     } catch (err) {
       res.status(400).json({ message: err.message });
     }
   });
+
+app.put("/budgets/edit/:id",verifyToken,async (req,res)=>{
+    try{
+      const {budget}=req.body;
+      const UpdatedBudget=await Budget.findByIdAndUpdate(req.params.id,{$set:{budget}}, 
+        { new: true, runValidators: true });
+      res.status(200).json({message:"Budget Updated Successfully",UpdatedBudget:UpdatedBudget})
+    }catch(error){
+      console.log("Error Updating Budget",error);
+    }
+})
 
   app.delete("/budgets/del/:id",verifyToken, async (req, res) => {
     try {
@@ -76,15 +87,14 @@ app.post("/budgets/add",verifyToken, async (req, res) => {
   });
 
   app.post("/transactions/add",verifyToken, async (req, res) => {
-    const { userId,budgetId,name, amount, description } = req.body;
+    const { userId,budgetId,name, amount, description,date } = req.body;
     try {
       const curBudget=await Budget.findById(budgetId);
-      const newTransaction = new Transaction({ userId,budgetId,budgetName:curBudget.name, amount, description });
+      const newTransaction = new Transaction({ userId,budgetId,budgetName:curBudget.name, amount, description,date});
       await newTransaction.save();
   
       await Budget.findByIdAndUpdate(budgetId, { $inc: { Spent: amount } });
       
-      console.log(curBudget)
       const curTransaction={...newTransaction._doc,}
       console.log(curTransaction)
       res.status(201).json(curTransaction);

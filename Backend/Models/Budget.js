@@ -6,6 +6,7 @@ const BudgetSchema = new mongoose.Schema({
   name: { type: String, required: true }, 
   budget: { type: Number, required: true }, 
   Spent: { type: Number, default: 0 },
+  valid:{type:Date}
 });
 
 module.exports = mongoose.model("Budget", BudgetSchema);

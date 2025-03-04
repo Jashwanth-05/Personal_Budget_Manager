@@ -9,7 +9,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { format, isWithinInterval, subDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns";
 
 const Transactions = () => {
-  const { transactions, addTransaction, delTransaction,budgets ,user} = useBudget();
+  const { transactions, addTransaction, delTransaction,budgets,upBudget ,user} = useBudget();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filter, setFilter] = useState("monthly");
   const [customRange, setCustomRange] = useState({ start: "", end: "" });
@@ -17,10 +17,9 @@ const Transactions = () => {
     budgetId: "",
     amount: "",
     description: "",
-    date: new Date().toISOString().split("T")[0], // Default to today
+    date: new Date().toISOString().split("T")[0], 
   });
 
-  // Function to filter transactions based on selected range
   const filteredTransactions = transactions.filter((transaction) => {
     const transactionDate = new Date(transaction.date);
     const today = new Date();
@@ -44,6 +43,7 @@ const Transactions = () => {
     return true;
   });
 
+
   const handleFilterChange = (e) => {
     setFilter(e.target.value);
   };
@@ -62,12 +62,18 @@ const Transactions = () => {
       alert("Please fill all fields!");
       return;
     }
+    const curBudget=budgets.find(bud=>bud._id===newTransaction.budgetId);
+    if(curBudget.Spent+Number(newTransaction.amount)>curBudget.budget){
+      alert("Transaction exceeds the budget limit! Budget has been updated.");
+      upBudget({budget:curBudget.Spent+Number(newTransaction.amount),id:newTransaction.budgetId})
+    }
+    console.log(newTransaction)
     addTransaction({
       userId:user.id,
       budgetId: newTransaction.budgetId,
       description: newTransaction.description,
       amount: Number(newTransaction.amount),
-      date: newTransaction.date || new Date().toISOString().split("T")[0], 
+      date: newTransaction.date, 
     });
     setNewTransaction({ budgetName: "", amount: "", description: "", date: new Date().toISOString().split("T")[0] });
     setIsModalOpen(false);
@@ -127,7 +133,7 @@ const Transactions = () => {
           </tbody>
         </table>
         </div>
-        {/* Modal for adding transactions */}
+
         {isModalOpen && (
           <div className="overlay">
             <div className="modal">

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:5556",
+  baseURL: "https://personal-budget-manager-backend.onrender.com",
 });
 
 // Attach token to every request
