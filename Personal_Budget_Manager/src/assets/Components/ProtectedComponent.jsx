@@ -13,7 +13,7 @@ const ProtectedRoute = () => {
           setIsAuthenticated(false);
           return;
         }
-        await API.post("/verify"); // Backend should verify token validity
+        await API.post("/verify");
         setIsAuthenticated(true);
       } catch (error) {
         console.error("Token verification failed", error);
@@ -23,7 +23,7 @@ const ProtectedRoute = () => {
     verifyToken();
   }, []);
 
-  // While verifying, show loading indicator
+
   if (isAuthenticated === null) {
     return <h2>Loading...</h2>;
   }

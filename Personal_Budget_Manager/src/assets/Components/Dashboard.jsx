@@ -19,7 +19,7 @@ const Dashboard = () => {
    const [newIncome, setNewIncome] = useState({
       name: "",
       money: "",
-      date: new Date().toISOString().split("T")[0], // Default to today
+      date: new Date().toISOString().split("T")[0], 
     });
   const totalIncome = incomes.reduce((sum, money) => sum +money.amount, 0);
   const totalSpent = budgets.reduce((sum, budget) => sum + budget.Spent, 0);

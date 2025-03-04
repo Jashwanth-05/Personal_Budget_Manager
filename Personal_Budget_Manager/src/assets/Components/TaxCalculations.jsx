@@ -15,7 +15,7 @@ const gstRates = {
 
 const TaxCalculator = () => {
   const [form, setForm] = useState({ price: "", category: "", description: "" });
-  const [taxType, setTaxType] = useState("GST"); // New state to toggle between GST & Income Tax
+  const [taxType, setTaxType] = useState("GST");
   const { calculations, addTax, delTax } = useBudget();
   const user = JSON.parse(localStorage.getItem("user"));
 
