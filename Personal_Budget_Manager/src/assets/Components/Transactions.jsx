@@ -9,9 +9,10 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { format, isWithinInterval, subDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns";
 
 const Transactions = () => {
-  const { transactions, addTransaction, delTransaction,budgets,upBudget ,user} = useBudget();
+  const { transactions, addTransaction, delTransaction,budgets,upBudget} = useBudget();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filter, setFilter] = useState("monthly");
+  const user=JSON.parse(localStorage.getItem("user"));
   const [customRange, setCustomRange] = useState({ start: "", end: "" });
   const [newTransaction, setNewTransaction] = useState({
     budgetId: "",

@@ -13,7 +13,7 @@ import CloseIcon from "@mui/icons-material/Close";
 const Budgets = () => {
   const [openCategory, setOpenCategory] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const {addBudget,budgets, delBudget,setBudgets,user} = useBudget()
+  const {addBudget,budgets, delBudget,setBudgets} = useBudget()
   const [newBudget, setNewBudget] = useState({
     category: "Monthly",
     name: "",
@@ -21,7 +21,7 @@ const Budgets = () => {
     Spent: "",
     valid:"",
   });
-
+  const user=JSON.parse(localStorage.getItem("user"))
   const toggleCategory = (category) => {
     setOpenCategory(openCategory === category ? null : category);
   };
