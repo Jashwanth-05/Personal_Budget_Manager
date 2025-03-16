@@ -1,4 +1,4 @@
-.login-header {
+.reset-header {
     display: flex;
     justify-content: center; 
     align-items: center;
@@ -9,43 +9,43 @@
     box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px; 
   }
   
-  .login-header h1 {
+  .reset-header h1 {
     width: 100%; 
     text-align: center; 
     margin: 0;
   }
   
-  .login-nav {
+  .reset-nav {
     position: absolute;
     right: 2vw; 
   }
   
-  .login-nav ul{
+  .reset-nav ul{
     list-style: none;
     padding: 0;
     margin: 0;
   }
-  .login-nav a{
+  .reset-nav a{
     padding: 10px 5px 5px 5px;
     border-radius: 3px;
     color: white;
     text-decoration: none;
   }
-  .login-nav a:hover{
+  .reset-nav a:hover{
     background-color: gray;
   }
-.login-main{
+.reset-main{
     width: 99.9vw;
     height: 90.9vh;
     position: relative;
 }
 
-.login-nav li{
+.reset-nav li{
   display: flex;
   justify-content: center;
   align-items: center;
 }
-.login-container{
+.reset-container{
   z-index: 2;
     padding: 80px 50px;
     border: 3px solid black;
@@ -57,11 +57,11 @@
     box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
 
-.login-container label{
+.reset-container label{
     display: block;
     margin-bottom: 5px;
 }
-.login-container input{
+.reset-container input{
     display: block;
     margin-bottom: 5px;
     border: 1px solid black;
@@ -69,7 +69,7 @@
     width: 200px;
     height: 25px;
 }
-.login-bt button{
+.reset-bt button{
     border: 1px solid black;
     background-color: black;
     color: white;
@@ -77,17 +77,13 @@
     width: 70px;
     height: 25px;
 }
-.login-bt{
+.reset-bt{
     margin-top: 10px;
     text-align: center;
 }
 
-.login-redirect{
+.reset-redirect{
     margin-top: 20px;
-}
-
-.login-redirect1{
-  padding-top:10px ;
 }
 
 .nav-link{
@@ -96,6 +92,6 @@
 
 .form-title{
   text-align: center;
-  padding-bottom: 10px;
+  margin-bottom:20px;
   font-size: 30px;
 }

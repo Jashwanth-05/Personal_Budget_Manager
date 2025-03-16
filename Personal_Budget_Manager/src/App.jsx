@@ -12,6 +12,7 @@ import Dashboard from './assets/Components/Dashboard';
 import Profile from './assets/Components/Profile';
 import ProtectedRoute from './assets/Components/ProtectedComponent';
 import TaxCalculator from './assets/Components/TaxCalculations';
+import Reset from './assets/Components/Reset';
 function App() {
   return (
     <>
@@ -21,6 +22,7 @@ function App() {
           <Route path='/' element={<Home />}></Route>
           <Route path='/login' element={<Login />}></Route>
           <Route path='/signup' element={<Signup />}></Route>
+          <Route path='/reset' element={<Reset />}></Route>
           <Route element={<ProtectedRoute />}>
             <Route path='/navbar' element={<Navbar />}></Route>
             <Route path='/budgets' element={<Budgets />}></Route>

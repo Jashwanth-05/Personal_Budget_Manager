@@ -32,6 +32,7 @@ const Login = () => {
             }
           } catch (err) {
             setError(err.response?.data?.message || "Login failed");
+            alert(err.response.data.message)
           };
     }
   return (
@@ -62,6 +63,9 @@ const Login = () => {
                 </div>
                 <div className='login-redirect'>
                     <span>Create new account?<Link to="/signup" className='nav-link'>Signup</Link></span>
+                </div>
+                <div className='login-redirect1'>
+                    <span><Link to="/reset" className='nav-link'>Forget Password?</Link></span>
                 </div>
             </form>
         </div>

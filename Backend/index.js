@@ -2,6 +2,8 @@ const express= require('express')
 const mdb=require('mongoose')
 const dotenv=require('dotenv')
 const bcrypt = require('bcrypt');
+const crypto = require("crypto");
+const sendOTP = require("./gmailservice");
 const cors=require('cors')
 dotenv.config()
 const app =express()
@@ -20,6 +22,10 @@ mdb.connect(process.env.MONGODB_URL).then(()=>{
 }).catch((err)=>{
     console.log("MDB Connection Failed", err)
 })
+
+const otpStore = new Map();
+const generateOTP = () => crypto.randomInt(100000, 999999).toString();
+
 const verifyToken = (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(" ")[1]; 
@@ -242,10 +248,57 @@ app.put("/budgets/edit/:id",verifyToken,async (req,res)=>{
         res.status(500).json({ error: err.message });
     }
 });
-
+  app.put("/updatepass",async (req,res)=>{
+    try{
+      const{email,password}=req.body;
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const updatedUser = await User.findOneAndUpdate(
+        { email },
+        { $set: {password: hashedPassword } }, 
+        { new: true, runValidators: true }
+      );
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.status(200).json({
+        message: "Password updated successfully"
+      });
+    }catch(err){
+      console.error("Error updating Password:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  })
   app.post("/verify",verifyToken,(req,res)=>{
       res.status(200).json({"message":"TokenVerified"})
   });
+
+  app.post("/send-otp", async (req, res) => {
+    const { email } = req.body;
+  
+    const otp = generateOTP();
+    otpStore.set(email, { otp, expiresAt: Date.now() + 5 * 60 * 1000 });
+  
+    const sent = await sendOTP(email, otp);
+    if (sent) {
+      res.json({ message: "OTP sent successfully" });
+    } else {
+      res.status(500).json({ message: "Error sending OTP" });
+    }
+  });
+  
+
+  app.post("/verify-otp", (req, res) => {
+    const { email, otp } = req.body;
+    const storedOTP = otpStore.get(email);
+  
+    if (!storedOTP || storedOTP.otp !== otp) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+  
+    otpStore.delete(email);
+    res.json({ message: "OTP verified successfully!" });
+  });
+  
 
 
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
