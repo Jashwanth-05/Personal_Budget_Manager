@@ -86,9 +86,24 @@
     margin-top: 20px;
 }
 
-.login-redirect1{
-  padding-top:10px ;
+.login-redirect1 a{
+  border: 1px solid red;
+  padding: 5px 5px;
+  border-radius: 5px;
+  background-color: red;
+  color: white;
+  text-decoration: none;
 }
+
+.login-redirect1 a:hover{
+  background-color: white;
+  color: red;
+}
+
+.login-redirect1{
+  margin-top: 15px;
+}
+
 
 .nav-link{
     color: red;
