@@ -65,8 +65,8 @@ const Transactions = () => {
     }
     const curBudget=budgets.find(bud=>bud._id===newTransaction.budgetId);
     if(curBudget.Spent+Number(newTransaction.amount)>curBudget.budget){
-      alert("Transaction exceeds the budget limit! Budget has been updated.");
-      upBudget({budget:curBudget.Spent+Number(newTransaction.amount),id:newTransaction.budgetId})
+      alert("Transaction exceeds the budget limit!");
+      upBudget({id:newTransaction.budgetId})
     }
     console.log(newTransaction)
     addTransaction({

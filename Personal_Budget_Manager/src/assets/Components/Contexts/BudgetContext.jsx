@@ -72,7 +72,7 @@ export const BudgetProvider = ({ children }) => {
       setBudgets((prevBudgets) =>
         prevBudgets.map((budget) =>
           budget._id === transaction.budgetId
-            ? { ...budget, Spent: budget.Spent + transaction.amount }
+            ? { ...budget, Spent: budget.Spent + transaction.amount,savings: Math.abs(budget.savings - transaction.amount) }
             : budget
         )
       );
@@ -101,9 +101,9 @@ export const BudgetProvider = ({ children }) => {
   };
   const upBudget=async(updBudget)=>{
     try{
-      const res=await API.put(`/budgets/edit/${updBudget.id}`,{budget:updBudget.budget})
+      const res=await API.put(`/budgets/edit/${updBudget.id}`,{overflow:true})
       setBudgets((old)=>{
-        return old.map((value)=>value._id===updBudget.id?{...value,budget:updBudget.budget}:value)
+        return old.map((value)=>value._id===updBudget.id?{...value,overflow:true}:value)
       })
     }catch(error){
       console.log("Error Updating Budget",error);

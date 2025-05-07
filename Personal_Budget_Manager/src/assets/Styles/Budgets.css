@@ -89,12 +89,19 @@
 }
 
 .budget-amount {
-    color: green;
+    color: blue;
     font-weight: bold;
 }
 
 .budget-spent {
-    color: red;
+    color: orange;
+}
+
+.budget-savings{
+    color:green
+}
+.budget-over{
+    color:red
 }
 
 /* Overlay Modal */
@@ -169,7 +176,7 @@
   
   .budget-table th, .budget-table td {
     padding: 10px;
-    text-align: left;
+    text-align: center;
   }
   
   .budget-table th {

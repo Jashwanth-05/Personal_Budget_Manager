@@ -85,10 +85,11 @@ const Budgets = () => {
                         <td className="budget-name">{budget.name}</td>
                         <td className="budget-amount">₹{budget.budget}</td>
                         <td className="budget-spent">₹{budget.Spent}</td>
+                        <td className={!budget.overflow?"budget-savings":"budget-over"}>₹{budget.savings}</td>
                         <td className="budget-progress">
                           <CircularProgress
                             variant="determinate"
-                            value={(budget.Spent / budget.budget) * 100}
+                            value={budget.overflow ? 100 : (budget.Spent / budget.budget) * 100}
                             size={30}
                           />
                         </td>
