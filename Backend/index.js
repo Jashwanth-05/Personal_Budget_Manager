@@ -93,10 +93,10 @@ app.put("/budgets/edit/:id",verifyToken,async (req,res)=>{
   });
 
   app.post("/transactions/add",verifyToken, async (req, res) => {
-    const { userId,budgetId,name, amount, description,date } = req.body;
+    const { userId,budgetId,name, amount,payment_method, description,date } = req.body;
     try {
       const curBudget=await Budget.findById(budgetId);
-      const newTransaction = new Transaction({ userId,budgetId,budgetName:curBudget.name, amount, description,date});
+      const newTransaction = new Transaction({ userId,budgetId,budgetName:curBudget.name, amount,payment_method, description,date});
       await newTransaction.save();
       const updatedSavings = Math.abs(curBudget.savings - amount);
 
@@ -140,9 +140,9 @@ app.put("/budgets/edit/:id",verifyToken,async (req,res)=>{
   });
 
   app.post("/incomes/add",verifyToken, async (req, res) => {
-    const { userId,source, amount,date } = req.body;
+    const { userId,source,payment_method, amount,date } = req.body;
     try {
-      const newIncome = new Income({ userId,source, amount,date });
+      const newIncome = new Income({ userId,source, amount,date,payment_method });
       await newIncome.save();
       res.status(201).json(newIncome);
     } catch (err) {

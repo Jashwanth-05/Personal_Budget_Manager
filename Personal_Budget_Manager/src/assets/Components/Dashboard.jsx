@@ -19,11 +19,23 @@ const Dashboard = () => {
    const [newIncome, setNewIncome] = useState({
       name: "",
       money: "",
+      payment_method:"",
       date: new Date().toISOString().split("T")[0], 
     });
   const totalIncome = incomes.reduce((sum, money) => sum +money.amount, 0);
+const getTotalByMethod = (arr, method) => 
+  arr.reduce((sum, item) => 
+    item.payment_method === method ? sum + item.amount : sum
+  , 0);
+
+const bankIncome = getTotalByMethod(incomes, "Bank");
+const cashIncome = getTotalByMethod(incomes, "Cash");
+const bankSpent  = getTotalByMethod(transactions, "Bank");
+const cashSpent  = getTotalByMethod(transactions, "Cash");
   const totalSpent = budgets.reduce((sum, budget) => sum + budget.Spent, 0);
   const remainingBalance = totalIncome - totalSpent;
+  const bankRem=bankIncome - bankSpent;
+  const cashRem=cashIncome - cashSpent;
 
   const groupedBudgets = budgets.reduce((acc, budget) => {
     if (!acc[budget.category]) acc[budget.category] = [];
@@ -43,7 +55,7 @@ const Dashboard = () => {
   };
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!newIncome.name || !newIncome.money || !newIncome.date) {
+    if (!newIncome.name || !newIncome.money || !newIncome.payment_method || !newIncome.date) {
       alert("Please fill all fields!");
       return;
     }
@@ -51,9 +63,10 @@ const Dashboard = () => {
       userId:user.id,
       source:newIncome.name,
       amount:newIncome.money,
+      payment_method:newIncome.payment_method,
       date:new Date(newIncome.date)
     });
-    setNewIncome({ name: "", money: "", date: new Date().toISOString().split("T")[0] });
+    setNewIncome({ name: "", money: "",payment_method:"", date: new Date().toISOString().split("T")[0] });
     setIsModalOpen(false);
   };
 
@@ -122,6 +135,7 @@ const Dashboard = () => {
       <div className="remaining-section">
         <h3>What's Left in Pocket</h3>
         <p>₹{remainingBalance}</p>
+        <p>💵₹{bankRem} | 🏦₹{cashRem}</p>
       </div>
 
 
@@ -149,6 +163,7 @@ const Dashboard = () => {
                     <tr>
                       <th>Date</th>
                       <th>Source</th>
+                      <th>Method</th>
                       <th>Amount</th>
                       <th></th>
                     </tr>
@@ -158,6 +173,7 @@ const Dashboard = () => {
                       <tr key={index}>
                         <td>{format(new Date(income.date), "dd/MM/yyyy")}</td>
                         <td>{income.source}</td>
+                        <td>{income.payment_method}</td>
                         <td>
                           ₹{income.amount}
                         </td>
@@ -178,6 +194,11 @@ const Dashboard = () => {
               <h3>Add Income</h3>
               <form onSubmit={handleSubmit}>
                 <input name="name" placeholder="Source" value={newIncome.name} onChange={handleChange}/>
+                <select name="payment_method" value={newIncome.payment_method} onChange={handleChange}>
+                  <option value="">Select Method</option>
+                  <option value="Bank">Bank</option>
+                  <option value="Cash">Cash</option>
+                </select>
                 <input type="date" name="date" value={newIncome.date} onChange={handleChange} />
                 <input type="number" name="money" placeholder="Amount" value={newIncome.money} onChange={handleChange} />
                 <button type="submit">Add Income</button>

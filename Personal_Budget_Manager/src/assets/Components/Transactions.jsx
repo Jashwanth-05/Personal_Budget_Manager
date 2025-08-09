@@ -17,6 +17,7 @@ const Transactions = () => {
   const [newTransaction, setNewTransaction] = useState({
     budgetId: "",
     amount: "",
+    payment_method:"",
     description: "",
     date: new Date().toISOString().split("T")[0], 
   });
@@ -59,7 +60,7 @@ const Transactions = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!newTransaction.budgetId || !newTransaction.amount || !newTransaction.description || !newTransaction.date) {
+    if (!newTransaction.budgetId || !newTransaction.amount || !newTransaction.description || !newTransaction.payment_method  || !newTransaction.date) {
       alert("Please fill all fields!");
       return;
     }
@@ -74,9 +75,10 @@ const Transactions = () => {
       budgetId: newTransaction.budgetId,
       description: newTransaction.description,
       amount: Number(newTransaction.amount),
+      payment_method:newTransaction.payment_method,
       date: newTransaction.date, 
     });
-    setNewTransaction({ budgetName: "", amount: "", description: "", date: new Date().toISOString().split("T")[0] });
+    setNewTransaction({ budgetName: "", amount: "",payment_method:"", description: "", date: new Date().toISOString().split("T")[0] });
     setIsModalOpen(false);
   };
 
@@ -110,6 +112,7 @@ const Transactions = () => {
               <th>Date</th>
               <th>Budget Name</th>
               <th>Description</th>
+              <th>Method</th>
               <th>Amount</th>
               <th></th>
             </tr>
@@ -120,6 +123,7 @@ const Transactions = () => {
                 <td>{format(new Date(transaction.date), "dd/MM/yyyy")}</td>
                 <td>{transaction.budgetName}</td>
                 <td>{transaction.description}</td>
+                <td>{transaction.payment_method}</td>
                 <td className="amount">
                   ₹{transaction.amount}
                 </td>
@@ -151,6 +155,11 @@ const Transactions = () => {
                 </select>
                 <input type="date" name="date" value={newTransaction.date} onChange={handleChange} />
                 <input type="number" name="amount" placeholder="Amount" value={newTransaction.amount} onChange={handleChange} />
+                <select name="payment_method" value={newTransaction.payment_method} onChange={handleChange}>
+                  <option value="">Select Method</option>
+                  <option value="Bank">Bank</option>
+                  <option value="Cash">Cash</option>
+                </select>
                 <input type="text" name="description" placeholder="Description" value={newTransaction.description} maxLength={25} onChange={handleChange} />
                 <button type="submit">Add Transaction</button>
               </form>
