@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { evaluate } from "mathjs";
+import { useRef } from "react";
 import Navbar from "./Navbar";
 import "../Styles/Transactions.css";
 import { useBudget } from "./Contexts/BudgetContext";
@@ -9,6 +11,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { format, isWithinInterval, subDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns";
 
 const Transactions = () => {
+  const pValues=useRef({});
   const { transactions, addTransaction, delTransaction,budgets,upBudget} = useBudget();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filter, setFilter] = useState("monthly");
@@ -17,6 +20,8 @@ const Transactions = () => {
   const [newTransaction, setNewTransaction] = useState({
     budgetId: "",
     amount: "",
+    Bamount:"",
+    Camount:"",
     payment_method:"",
     description: "",
     date: new Date().toISOString().split("T")[0], 
@@ -45,6 +50,21 @@ const Transactions = () => {
     return true;
   });
 
+  const handleBlur = (e) => {
+    const {name,value}=e.target;
+    if(pValues.current[name]===value){
+      console.log("True");
+      return;
+    }
+    console.log("False");
+    try {
+      const result = evaluate(value);
+      setNewTransaction({...newTransaction,[name]:result})
+      pValues.current[name]=value;
+    } catch {
+      console.error("Invalid expression");
+    }
+  };
 
   const handleFilterChange = (e) => {
     setFilter(e.target.value);
@@ -60,20 +80,26 @@ const Transactions = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!newTransaction.budgetId || !newTransaction.amount || !newTransaction.description || !newTransaction.payment_method  || !newTransaction.date) {
+    if (!newTransaction.budgetId || !newTransaction.description || !newTransaction.payment_method  || !newTransaction.date || (newTransaction.payment_method==="BC" && (!newTransaction.Bamount || !newTransaction.Camount)) || (newTransaction.payment_method!="BC" && (!newTransaction.amount))) {
       alert("Please fill all fields!");
       return;
     }
     const curBudget=budgets.find(bud=>bud._id===newTransaction.budgetId);
-    if(curBudget.Spent+Number(newTransaction.amount)>curBudget.budget){
+    const totalAmount = newTransaction.payment_method === "BC"
+      ? Number(newTransaction.Bamount) + Number(newTransaction.Camount)
+      : Number(newTransaction.amount);
+
+    if (curBudget.Spent + totalAmount > curBudget.budget) {
       alert("Transaction exceeds the budget limit!");
-      upBudget({id:newTransaction.budgetId})
+      upBudget({ id: newTransaction.budgetId });
     }
     console.log(newTransaction)
     addTransaction({
       userId:user.id,
       budgetId: newTransaction.budgetId,
       description: newTransaction.description,
+      Bamount:Number(newTransaction.Bamount),
+      Camount:Number(newTransaction.Camount),
       amount: Number(newTransaction.amount),
       payment_method:newTransaction.payment_method,
       date: newTransaction.date, 
@@ -125,7 +151,7 @@ const Transactions = () => {
                 <td>{transaction.description}</td>
                 <td>{transaction.payment_method}</td>
                 <td className="amount">
-                  ₹{transaction.amount}
+                  ₹{transaction.payment_method==="BC"?transaction.Bamount+transaction.Camount:transaction.amount}
                 </td>
                 <td>
                 <IconButton edge="end" color="error" onClick={() => delTransaction(transaction._id)}>
@@ -154,12 +180,13 @@ const Transactions = () => {
                   ))}
                 </select>
                 <input type="date" name="date" value={newTransaction.date} onChange={handleChange} />
-                <input type="number" name="amount" placeholder="Amount" value={newTransaction.amount} onChange={handleChange} />
                 <select name="payment_method" value={newTransaction.payment_method} onChange={handleChange}>
                   <option value="">Select Method</option>
                   <option value="Bank">Bank</option>
                   <option value="Cash">Cash</option>
+                  <option value="BC">Bank + Cash</option>
                 </select>
+                {newTransaction.payment_method==="BC"?(<><label htmlFor="Bamount" className="TL">Bank</label><input type="text" name="Bamount" placeholder="Amount or Expression like 2+3" value={newTransaction.Bamount} onChange={handleChange} onBlur={handleBlur}></input><label htmlFor="Camount" className="TL">Cash</label><input type="text" name="Camount" placeholder="Amount or Expression like 2+3" value={newTransaction.Camount} onChange={handleChange} onBlur={handleBlur}></input></>):(<input type="text" name="amount" placeholder="Amount or Expression like 2+3" value={newTransaction.amount} onChange={handleChange} onBlur={handleBlur}/>)}
                 <input type="text" name="description" placeholder="Description" value={newTransaction.description} maxLength={25} onChange={handleChange} />
                 <button type="submit">Add Transaction</button>
               </form>

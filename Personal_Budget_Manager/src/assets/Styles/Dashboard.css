@@ -149,89 +149,142 @@
   border-radius: 5px;
   transition: width 0.5s ease-in-out;
 }
-.income{
-  background: linear-gradient(70deg,#b57bee,#392d69);
-  width: 35vw;
+
+.dashboard-card.outcome {
+  background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  width: 35vw;    
 }
-.income-header {
+
+.outcome-main1{
+  display: flex;
+  flex-direction: column;
+
+}
+.outcome-main2{
+  /* border:1px solid black; */
+}
+.outcome-header {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.outcome-header1 {
+  margin-top: 10px;
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
 }
 
-.income-title {
-  font-size: 24px;
+.outcome-header h3{
+  margin: 0;
+  padding: 0;
+}
+.outcome-header1 h3{
+  margin: 0;
+  padding: 0;
+}
+.outcome-title {
+  font-size: 22px;
   font-weight: bold;
+  color: black;
 }
 
-.add-income-btn {
-  cursor: pointer;
-  font-size: 28px;
-  color: white;
-  transition: transform 0.2s;
-}
-.add-income-btn{
-  padding: 5px;
-  border:1px solid white;
-  border-radius: 100%;
-}
-.add-income-btn:hover {
-  transform: scale(1.1);
+.outcome-split {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
 }
 
-
-.income-table-container {
-  max-height: 20vh; /* Adjust as needed */
-  overflow-y: auto;
-  border: 3px solid black;
-  border-radius: 5px;
-  scrollbar-width: none; /* Hide scrollbar for Firefox */
-  -ms-overflow-style: none; /* Hide scrollbar for IE/Edge */
+.outcome-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #ffffff;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px 30px;
+  border-radius: 8px;
 }
 
-/* Hide scrollbar for Chrome, Safari, and Edge */
-.income-table-container::-webkit-scrollbar {
-  display: none;
-}
-.income-table {
-  width: 100%;
-  border-collapse: collapse;
-
-}
-/* Fix table header */
-.income-table thead {
-  position: sticky;
-  top: 0;
-  background: white;
-  z-index: 100;
+.outcome-icon {
+  font-size: 23px;
 }
 
-.income-table th, .income-table td {
-  padding: 10px;
-  color: white;
-  font-weight: 500;
-  /* border: 1px solid #ddd; */
-  text-align: left;
+.outcome-label {
+  font-size: 18px;
+  color: #666;
+  margin: 0;
 }
 
-.income-table th {
-  background-color: black;
-  color: white;
-}
-
-.income-table .amount {
+.outcome-amount {
+  font-size: 20px;
   font-weight: bold;
-  color: green;
+  color: #222;
+  margin: 0;
 }
 
-.income-table .amount.negative {
-  color: red;
-}
 
-/* Spending Info */
 .spending-info {
   margin-top: 8px;
   font-size: 0.9rem;
   opacity: 0.9;
 }
+
+.add-remainder-btn {
+  cursor: pointer;
+  font-size: 28px;
+  color: black;
+  transition: transform 0.2s;
+}
+.add-remainder-btn{
+  padding: 5px;
+  border:1px solid black;
+  border-radius: 100%;
+}
+.add-remainder-btn:hover {
+  transform: scale(1.1);
+}
+
+.remainder-box{
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.remainder-card h3, .remainder-card p{
+  margin: 0;
+  padding: 0;
+}
+
+.remainder-card{
+  padding: 8px 2px;
+  background-color: white;
+  border-radius: 8px;
+  max-width: 80px;
+  white-space: nowrap;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.animate-overflow {
+  animation: scrollText 10s linear infinite;
+}
+
+@keyframes scrollText {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+
+
+
+
+

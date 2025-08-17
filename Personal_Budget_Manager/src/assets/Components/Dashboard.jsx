@@ -1,37 +1,45 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import Navbar from "./Navbar";
 import { useBudget } from "./Contexts/BudgetContext";
-import "../Styles/Dashboard.css";
-import {IconButton} from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
-import { format} from "date-fns";
+import {
+  Card,
+  CardContent,
+  Typography,
+  Chip,
+  Box,
+  Grid2
+} from "@mui/material";
+import { CheckCircle, AccessTime } from "@mui/icons-material";
+import dayjs from "dayjs";
+import DeleteIcon from "@mui/icons-material/Delete";
+import "../Styles/Dashboard.css";
+import { PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
+
 const Dashboard = () => {
-  const { budgets, transactions,incomes,addIncome,delIncome } = useBudget();
-  const user=JSON.parse(localStorage.getItem("user"))
+  const { budgets, transactions,incomes,remainders,addRemainder,upRemainder,delRemainder } = useBudget();
   const [timeRange, setTimeRange] = useState("Monthly");
   const [pietimeRange,setPieTimeRange]=useState("Monthly");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
+  const user=JSON.parse(localStorage.getItem("user"))
+  const [Remainders,setRemainders] = useState({
+    title:"",
+    dueDate:new Date().toISOString().split("T")[0]
+  });
+  console.log(remainders)
   const [isModalOpen, setIsModalOpen] = useState(false);
-   const [newIncome, setNewIncome] = useState({
-      name: "",
-      money: "",
-      payment_method:"",
-      date: new Date().toISOString().split("T")[0], 
-    });
   const totalIncome = incomes.reduce((sum, money) => sum +money.amount, 0);
-const getTotalByMethod = (arr, method) => 
+  const getTotalByMethod = (arr, method,amount) => 
   arr.reduce((sum, item) => 
-    item.payment_method === method ? sum + item.amount : sum
+    item.payment_method === method ? sum + item[amount] : sum
   , 0);
 
-const bankIncome = getTotalByMethod(incomes, "Bank");
-const cashIncome = getTotalByMethod(incomes, "Cash");
-const bankSpent  = getTotalByMethod(transactions, "Bank");
-const cashSpent  = getTotalByMethod(transactions, "Cash");
+  const bankIncome = getTotalByMethod(incomes, "Bank","amount");
+  const cashIncome = getTotalByMethod(incomes, "Cash","amount");
+  const bankSpent  = getTotalByMethod(transactions, "Bank","amount")+getTotalByMethod(transactions, "BC","Bamount");
+  const cashSpent  = getTotalByMethod(transactions, "Cash","amount")+getTotalByMethod(transactions, "BC","Camount");
   const totalSpent = budgets.reduce((sum, budget) => sum + budget.Spent, 0);
   const remainingBalance = totalIncome - totalSpent;
   const bankRem=bankIncome - bankSpent;
@@ -43,33 +51,58 @@ const cashSpent  = getTotalByMethod(transactions, "Cash");
     return acc;
   }, {});
 
+  // Place this inside your Dashboard component
+useEffect(() => {
+  const updateOverflowAnimation = () => {
+    document.querySelectorAll('.remainder-card h3').forEach(h3 => {
+      if (h3.scrollWidth > h3.clientWidth) {
+        h3.classList.add('animate-overflow');
+      } else {
+        h3.classList.remove('animate-overflow');
+      }
+    });
+  };
+  updateOverflowAnimation();
+}, [remainders]); // re-run on remainders change
 
   const pieData =(groupedBudgets[pietimeRange]||[] ).map((budget) => ({
     name: budget.name,
     value: budget.Spent,
   }));
 
+ const calculateTotals = (transactions) => {
+  const today = new Date();
 
-  const handleChange = (e) => {
-    setNewIncome({ ...newIncome, [e.target.name]: e.target.value });
-  };
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!newIncome.name || !newIncome.money || !newIncome.payment_method || !newIncome.date) {
-      alert("Please fill all fields!");
-      return;
+  // Find Monday of this week
+  const startOfWeek = new Date(today);
+  const day = today.getDay(); // 0 = Sunday, 1 = Monday, ...
+  const diff = today.getDate() - day + (day === 0 ? -6 : 1); 
+  startOfWeek.setDate(diff);
+  startOfWeek.setHours(0, 0, 0, 0); // reset to start of the day
+
+  let weekTotal = 0;
+  let todayTotal = 0;
+
+  transactions.forEach((t) => {
+    const transactionDate = new Date(t.date);
+    transactionDate.setHours(0, 0, 0, 0); // normalize date
+
+    // Check if transaction is in this week
+    if (transactionDate >= startOfWeek && transactionDate <= today) {
+      weekTotal += t.amount;
     }
-    addIncome({
-      userId:user.id,
-      source:newIncome.name,
-      amount:newIncome.money,
-      payment_method:newIncome.payment_method,
-      date:new Date(newIncome.date)
-    });
-    setNewIncome({ name: "", money: "",payment_method:"", date: new Date().toISOString().split("T")[0] });
-    setIsModalOpen(false);
-  };
 
+    // Check if transaction is today
+    if (transactionDate.toDateString() === today.toDateString()) {
+      todayTotal += t.amount;
+    }
+  });
+
+  return { weekTotal, todayTotal };
+};
+
+// Usage
+const { weekTotal, todayTotal } = calculateTotals(transactions);
 
   const groupTransactions = () => {
     const grouped = {};
@@ -122,6 +155,24 @@ const cashSpent  = getTotalByMethod(transactions, "Cash");
   const barData = groupTransactions();
   const allDescriptions = [...new Set(transactions.map((t) => t.description))];
 
+  const handleChange = (e) => {
+    setRemainders({ ...Remainders, [e.target.name]: e.target.value });
+  };
+
+const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!Remainders.title || !Remainders.dueDate) {
+      alert("Please fill all fields!");
+      return;
+    }
+    addRemainder({
+      userId:user.id,
+      title:Remainders.title,
+      dueDate:new Date(Remainders.dueDate)
+    });
+    setRemainders({ title: "",dueDate:""});
+    setIsModalOpen(false);
+  };
   return (
     <div>
       <Navbar />
@@ -152,62 +203,50 @@ const cashSpent  = getTotalByMethod(transactions, "Cash");
       </div>
 
 
-        <div className="dashboard-card income">
-        <div className="income-header">
-          <h2 className="income-title">Incomes</h2>
-          <AddIcon className="add-income-btn" onClick={() => setIsModalOpen(true)} />
-        </div>
-        <div className="income-table-container">
-                <table className="income-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Source</th>
-                      <th>Method</th>
-                      <th>Amount</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {incomes.map((income, index) => (
-                      <tr key={index}>
-                        <td>{format(new Date(income.date), "dd/MM/yyyy")}</td>
-                        <td>{income.source}</td>
-                        <td>{income.payment_method}</td>
-                        <td>
-                          ₹{income.amount}
-                        </td>
-                        <td>
-                        <IconButton edge="end" color="error" onClick={() => delIncome(income._id)}>
-                        <DeleteIcon />
-                        </IconButton>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                </div>
-                {isModalOpen && (
-          <div className="overlay">
-            <div className="modal">
-              <CloseIcon className="close-icon" onClick={() => setIsModalOpen(false)} />
-              <h3>Add Income</h3>
-              <form onSubmit={handleSubmit}>
-                <input name="name" placeholder="Source" value={newIncome.name} onChange={handleChange}/>
-                <select name="payment_method" value={newIncome.payment_method} onChange={handleChange}>
-                  <option value="">Select Method</option>
-                  <option value="Bank">Bank</option>
-                  <option value="Cash">Cash</option>
-                </select>
-                <input type="date" name="date" value={newIncome.date} onChange={handleChange} />
-                <input type="number" name="money" placeholder="Amount" value={newIncome.money} onChange={handleChange} />
-                <button type="submit">Add Income</button>
-              </form>
+        <div className="dashboard-card outcome">
+          <div className="outcome-main1">
+              <div className="outcome-header">
+            <h3 className="outcome-title">Total Spent</h3>
+          </div>
+
+          <div className="outcome-split">
+            <div className="outcome-item">
+              <span className="outcome-icon">📅</span>
+              <div>
+                <p className="outcome-label">This Week</p>
+                <p className="outcome-amount">₹{weekTotal}</p>
+              </div>
+            </div>
+
+            <div className="outcome-item">
+              <span className="outcome-icon">🛒</span>
+              <div>
+                <p className="outcome-label">Today</p>
+                <p className="outcome-amount">₹{todayTotal}</p>
+              </div>
             </div>
           </div>
-        )}
-        </div>
-
+          </div>
+          <div className="outcome-main2">
+            <div className="outcome-header1">
+            <h3 className="outcome-title">Bill Remainder</h3>
+            <AddIcon className="add-remainder-btn" onClick={() => setIsModalOpen(true)} />
+          </div>
+              <div className="remainder-box">
+                  {remainders.map((bill,index)=>(
+                    <div key={index} className="remainder-card">
+                        <h3>{bill.title}</h3>
+                        <p>🗓️{dayjs(bill.dueDate).format("DD MMM")}</p>
+                        {bill.isPaid ? (
+                          <CheckCircle color="success" sx={{ fontSize: 25,pt:0.5 }} />
+                        ) : (
+                          <AccessTime color="error" sx={{ fontSize: 25,pt:0.5 }} />
+                        )}
+                    </div>
+                  ))}
+              </div>
+          </div>
+        </div>     
         <div className="dashboard-card chart-card">
           <h3>Budget Spending Overview</h3>
           <select value={pietimeRange} onChange={(e) => setPieTimeRange(e.target.value)}>
@@ -273,6 +312,19 @@ const cashSpent  = getTotalByMethod(transactions, "Cash");
             </BarChart>
           </ResponsiveContainer>
         </div>
+        {isModalOpen && (
+          <div className="overlay">
+            <div className="modal">
+              <CloseIcon className="close-icon" onClick={() => setIsModalOpen(false)} />
+              <h3>Add Remainder</h3>
+              <form onSubmit={handleSubmit}>
+                <input type="text" name="title" placeholder="Remainder Title" value={Remainders.title} onChange={handleChange} />
+                <input type="date" name="dueDate" placeholder="Due Date" value={Remainders.dueDate} onChange={handleChange} />
+                <button type="submit">Add</button>
+              </form>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

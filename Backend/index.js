@@ -11,6 +11,7 @@ app.use(express.json())
 app.use(cors())
 const PORT = 5556
 const Budget = require("./Models/Budget");
+const Remainder =require("./Models/Remainder");
 const Transaction = require("./Models/Transaction");
 const jwt = require("jsonwebtoken");
 const Income = require("./Models/Income");
@@ -82,6 +83,47 @@ app.put("/budgets/edit/:id",verifyToken,async (req,res)=>{
     }
   });
 
+  app.post("/remainders/all",verifyToken, async (req, res) => {
+    const {userId}=req.body;
+    try {
+      const remainders = await Remainder.find({userId:userId});
+      res.json(remainders);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.post("/remainders/add",verifyToken, async (req, res) => {
+    const { userId,title,dueDate,isPaid } = req.body;
+    try {
+      const newRemainder = new Remainder ({userId,title,dueDate,isPaid:false});
+      await newRemainder.save();
+      res.status(201).json(newRemainder);
+    } catch (err) {
+      res.status(400).json({ message: err.message });
+    }
+  });
+
+  app.put("/remainders/edit/:id",verifyToken,async (req,res)=>{
+    try{
+      const {isPaid}=req.body;
+      const UpdatedRemainder=await Remainder.findByIdAndUpdate(req.params.id,{$set:{isPaid}}, 
+        { new: true, runValidators: true });
+      res.status(200).json({message:"Remainder Updated Successfully",UpdatedRemainder:UpdatedRemainder})
+    }catch(error){
+      console.log("Error Updating Remainder",error);
+    }
+})
+
+  app.delete("/remainders/del/:id",verifyToken, async (req, res) => {
+    try {
+      await Remainder.findByIdAndDelete(req.params.id);
+      res.json({ message: "Remainder deleted successfully" });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   app.post("/transactions/all",verifyToken, async (req, res) => {
     const {userId}=req.body;
     try {
@@ -93,10 +135,10 @@ app.put("/budgets/edit/:id",verifyToken,async (req,res)=>{
   });
 
   app.post("/transactions/add",verifyToken, async (req, res) => {
-    const { userId,budgetId,name, amount,payment_method, description,date } = req.body;
+    const { userId,budgetId,name,Camount,Bamount, amount,payment_method, description,date } = req.body;
     try {
       const curBudget=await Budget.findById(budgetId);
-      const newTransaction = new Transaction({ userId,budgetId,budgetName:curBudget.name, amount,payment_method, description,date});
+      const newTransaction = new Transaction({ userId,budgetId,budgetName:curBudget.name,Camount,Bamount, amount,payment_method, description,date});
       await newTransaction.save();
       const updatedSavings = Math.abs(curBudget.savings - amount);
 

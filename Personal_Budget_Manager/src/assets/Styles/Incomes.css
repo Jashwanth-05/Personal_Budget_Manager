@@ -1,0 +1,82 @@
+.income{
+  /* background: linear-gradient(70deg,#b57bee,#392d69); */
+    position: absolute;
+    width: 60vw;
+    height: 80vh;
+    top: 10vh;
+    left: 30vw;
+}
+.income-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.income-title {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.add-income-btn {
+  cursor: pointer;
+  font-size: 28px;
+  color: black;
+  transition: transform 0.2s;
+}
+.add-income-btn{
+  padding: 5px;
+  border:1px solid black;
+  border-radius: 100%;
+}
+.add-income-btn:hover {
+  transform: scale(1.1);
+}
+
+
+.income-table-container {
+  max-height: 70vh; /* Adjust as needed */
+  overflow-y: auto;
+  border: 3px solid black;
+  border-radius: 5px;
+  scrollbar-width: none; /* Hide scrollbar for Firefox */
+  -ms-overflow-style: none; /* Hide scrollbar for IE/Edge */
+}
+
+/* Hide scrollbar for Chrome, Safari, and Edge */
+.income-table-container::-webkit-scrollbar {
+  display: none;
+}
+.income-table {
+  width: 100%;
+  border-collapse: collapse;
+
+}
+/* Fix table header */
+.income-table thead {
+  position: sticky;
+  top: 0;
+  background: black;
+  z-index: 100;
+}
+
+.income-table th, .income-table td {
+  padding: 10px;
+  color: black;
+  /* border: 1px solid #ddd; */
+  text-align: center;
+}
+
+.income-table th {
+  background-color: black;
+  color: white;
+}
+
+.income-table .amount {
+  font-weight: bold;
+  color: green;
+}
+
+.income-table .amount.negative {
+  color: red;
+}

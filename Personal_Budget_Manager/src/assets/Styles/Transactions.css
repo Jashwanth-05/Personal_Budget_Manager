@@ -177,3 +177,8 @@
     transform: scale(1.2);
   }
   
+  .TL{
+    text-align: left;
+    font-size: 15px;
+    padding-left: 2px;
+  }

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useBudget } from "./Contexts/BudgetContext";
 import TextSnippetIcon from '@mui/icons-material/TextSnippet';
 import PaidIcon from '@mui/icons-material/Paid';
+import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PersonIcon from '@mui/icons-material/Person';
 import { useNavigate } from 'react-router-dom';
@@ -44,6 +45,7 @@ const Navbar = () => {
           <nav>
             <ul>
               <Link to='/dashboard'><li><DashboardIcon /><span>Dashboard</span></li></Link>
+              <Link to='/incomes'><li><CurrencyRupeeIcon/><span>Incomes</span></li></Link>
               <Link to='/budgets'><li><TextSnippetIcon /><span>Budgets</span></li></Link>
               <Link to='/transactions'><li><PaidIcon/><span>Transactions</span></li></Link>
               <Link to='/taxcalc'><li><CalculateIcon /><span>Tax Calculation</span></li></Link>

@@ -4,6 +4,7 @@ import API from "../../../axiosInstance"
 const BudgetContext = createContext();
 import { useEffect } from "react";
 import { endOfMonth, startOfMonth } from "date-fns";
+import dayjs from "dayjs";
 export const useBudget = () => useContext(BudgetContext);
 
 export const BudgetProvider = ({ children }) => {
@@ -12,6 +13,7 @@ export const BudgetProvider = ({ children }) => {
   const [incomes,setIncomes]=useState([]);
   const [transactions, setTransactions] = useState([]);
   const [calculations, setCalculations] = useState([]);
+  const [remainders, setRemainders] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -21,6 +23,7 @@ export const BudgetProvider = ({ children }) => {
         const transactionRes = await API.post("/transactions/all",body);
         const incomeRes = await API.post("/incomes/all",body);
         const taxRes=await API.get(`/tax/all/${user.id}`);
+        const RemainderRes= await API.post("/remainders/all",body);
         // console.log(budgetRes)
         // console.log(transactionRes)
         // console.log(incomeRes)
@@ -53,6 +56,17 @@ export const BudgetProvider = ({ children }) => {
             .sort((a, b) => new Date(b.date) - new Date(a.date))
         );
         
+        setRemainders(
+              RemainderRes.data
+                .filter((bill) => {
+                  if (!bill.dueDate) return false; 
+                  const today = dayjs(); 
+                  const dueDate = dayjs(bill.dueDate);
+                  return dueDate.isAfter(today, "day") || dueDate.isSame(today, "day");
+                })
+                .sort((a, b) => dayjs(a.dueDate).valueOf() - dayjs(b.dueDate).valueOf())
+            );
+
         setCalculations(
           taxRes.data
             .sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -90,6 +104,33 @@ export const BudgetProvider = ({ children }) => {
     }
   }
 
+
+  const addRemainder = async (newRemainder) => {
+    try {
+      const res = await API.post("/remainders/add", newRemainder);
+      setRemainders((prev) => [...prev, res.data]);
+    } catch (error) {
+      console.error("Error adding remainder:", error);
+    }
+  };
+  const upRemainder=async(updRemainder)=>{
+    try{
+      const res=await API.put(`/remainders/edit/${updRemainder.id}`,{isPaid:true})
+      setRemainders((old)=>{
+        return old.map((value)=>value._id===updRemainder.id?{...value,isPaid:true}:value)
+      })
+    }catch(error){
+      console.log("Error Updating Remainder",error);
+    }
+  }
+  const delRemainder=async(remainderId)=>{
+    try{
+      await API.delete(`/remainders/del/${remainderId}`);
+      setRemainders(remainders.filter((bud) => bud._id !== remainderId));
+    }catch(error){
+      console.log("Error Deleting Remainder:",error);
+    }
+  }
 
   const addBudget = async (newBudget) => {
     try {
@@ -156,7 +197,7 @@ export const BudgetProvider = ({ children }) => {
     
   }
   return (
-    <BudgetContext.Provider value={{ budgets,delBudget,delIncome,delTax,upBudget,calculations,addTax, setBudgets,setTransactions,delTransaction,setIncomes,setUser ,transactions,incomes, addTransaction, addBudget, addIncome,user }}>
+    <BudgetContext.Provider value={{ budgets,delBudget,delIncome,addRemainder,upRemainder,delRemainder,remainders,delTax,upBudget,calculations,addTax, setBudgets,setTransactions,delTransaction,setIncomes,setUser ,transactions,incomes, addTransaction, addBudget, addIncome,user }}>
       {children}
     </BudgetContext.Provider>
   );
