@@ -81,6 +81,7 @@ export const BudgetProvider = ({ children }) => {
 
   const addTransaction = async (transaction) => {
     try {
+      console.log(transaction);
       const res = await API.post("/transactions/add", transaction);
       setTransactions((prev) => [...prev, res.data].sort((a,b)=>new Date(b.date)-new Date(a.date)));
       setBudgets((prevBudgets) =>
@@ -113,11 +114,11 @@ export const BudgetProvider = ({ children }) => {
       console.error("Error adding remainder:", error);
     }
   };
-  const upRemainder=async(updRemainder)=>{
+  const upRemainder=async(updRemainderID,isPaid)=>{
     try{
-      const res=await API.put(`/remainders/edit/${updRemainder.id}`,{isPaid:true})
+      const res=await API.put(`/remainders/edit/${updRemainderID}`,{isPaid:isPaid})
       setRemainders((old)=>{
-        return old.map((value)=>value._id===updRemainder.id?{...value,isPaid:true}:value)
+        return old.map((value)=>value._id===updRemainderID?{...value,isPaid:isPaid}:value)
       })
     }catch(error){
       console.log("Error Updating Remainder",error);

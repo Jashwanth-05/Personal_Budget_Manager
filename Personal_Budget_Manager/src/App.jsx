@@ -14,6 +14,7 @@ import ProtectedRoute from './assets/Components/ProtectedComponent';
 import TaxCalculator from './assets/Components/TaxCalculations';
 import Reset from './assets/Components/Reset';
 import Incomes from './assets/Components/Incomes';
+import Example from './assets/Components/Example';
 function App() {
   return (
     <>
@@ -30,6 +31,7 @@ function App() {
             <Route path='/transactions' element={<Transactions />}></Route>
             <Route path='/dashboard' element={<Dashboard/>}></Route>
             <Route path='/incomes' element={<Incomes/>}></Route>
+            <Route path='/example' element={<Example/>}></Route>
             <Route path='/profile' element={<Profile/>}></Route>
             <Route path='/taxcalc' element={<TaxCalculator/>}></Route>
           </Route>

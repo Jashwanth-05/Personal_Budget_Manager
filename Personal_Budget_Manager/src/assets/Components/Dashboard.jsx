@@ -1,16 +1,12 @@
-import React, { useState,useEffect } from "react";
+import React, { useState,useEffect,useRef,useMemo } from "react";
 import Navbar from "./Navbar";
 import { useBudget } from "./Contexts/BudgetContext";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
-import {
-  Card,
-  CardContent,
-  Typography,
-  Chip,
-  Box,
-  Grid2
-} from "@mui/material";
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import HoverAnchor from './HoverAnchor';
+import Popup from './Popup';
 import { CheckCircle, AccessTime } from "@mui/icons-material";
 import dayjs from "dayjs";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -22,13 +18,18 @@ const Dashboard = () => {
   const [timeRange, setTimeRange] = useState("Monthly");
   const [pietimeRange,setPieTimeRange]=useState("Monthly");
   const [customStartDate, setCustomStartDate] = useState("");
+  const [open, setOpen] = useState(false);
+  const [anchorRect, setAnchorRect] = useState(null);
+  const [overPopup, setOverPopup] = useState(false);
+  const [hoveredId, setHoveredId] = useState(null);
+  const showTimerRef = useRef(null);
+const hideTimerRef = useRef(null);
   const [customEndDate, setCustomEndDate] = useState("");
   const user=JSON.parse(localStorage.getItem("user"))
   const [Remainders,setRemainders] = useState({
     title:"",
     dueDate:new Date().toISOString().split("T")[0]
   });
-  console.log(remainders)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const totalIncome = incomes.reduce((sum, money) => sum +money.amount, 0);
   const getTotalByMethod = (arr, method,amount) => 
@@ -65,10 +66,7 @@ useEffect(() => {
   updateOverflowAnimation();
 }, [remainders]); // re-run on remainders change
 
-  const pieData =(groupedBudgets[pietimeRange]||[] ).map((budget) => ({
-    name: budget.name,
-    value: budget.Spent,
-  }));
+
 
  const calculateTotals = (transactions) => {
   const today = new Date();
@@ -152,12 +150,84 @@ const { weekTotal, todayTotal } = calculateTotals(transactions);
     return `rgb(${r},${g},${b})`;
   };
 
+const pieColorMapRef = useRef(new Map());   
+const barColorMapRef = useRef(new Map());  
+
   const barData = groupTransactions();
-  const allDescriptions = [...new Set(transactions.map((t) => t.description))];
+
+
+  const pieData = React.useMemo(() => {
+  return (groupedBudgets[pietimeRange] || []).map((b) => ({
+    name: b.name,
+    value: b.Spent,
+  }));
+}, [groupedBudgets, pietimeRange]);
+
+const allDescriptions = React.useMemo(() => {
+  return [...new Set(transactions.map((t) => t.description))];
+}, [transactions]);
+
+
+// PIE: guarantee color for each segment key
+for (const d of pieData) {
+  if (!pieColorMapRef.current.has(d.name)) {
+    pieColorMapRef.current.set(d.name, getRandomLightColor());
+  }
+}
+
+// BARS: guarantee color for each description key
+for (const desc of allDescriptions) {
+  if (!barColorMapRef.current.has(desc)) {
+    barColorMapRef.current.set(desc, getRandomDarkColor());
+  }
+}
+
+
+
+
+
 
   const handleChange = (e) => {
     setRemainders({ ...Remainders, [e.target.name]: e.target.value });
   };
+
+const handleHoverChange = (isOver, rect, id) => {
+  // Clear any previous timers to avoid race conditions
+  if (showTimerRef.current) clearTimeout(showTimerRef.current);
+  if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+
+  if (isOver) {
+    // Optional small show delay (prevents flicker)
+    showTimerRef.current = setTimeout(() => {
+      setAnchorRect(rect);
+      setHoveredId(id);
+      setOpen(true);
+    }, 120);
+  } else {
+    // Hide after a short delay; will be canceled if pointer reaches popup
+    hideTimerRef.current = setTimeout(() => {
+      if (!overPopup) {
+        setOpen(false);
+        setHoveredId(null);
+      }
+    }, 160);
+  }
+};
+
+// on popup container
+const handlePopupEnter = () => {
+  if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+  setOverPopup(true);
+};
+const handlePopupLeave = () => {
+  setOverPopup(false);
+  // close if anchor is no longer hovered
+  hideTimerRef.current = setTimeout(() => {
+    setOpen(false);
+    setHoveredId(null);
+  }, 120);
+};
+
 
 const handleSubmit = (e) => {
     e.preventDefault();
@@ -170,7 +240,7 @@ const handleSubmit = (e) => {
       title:Remainders.title,
       dueDate:new Date(Remainders.dueDate)
     });
-    setRemainders({ title: "",dueDate:""});
+    setRemainders({ title: "",dueDate:new Date().toISOString().split("T")[0]});
     setIsModalOpen(false);
   };
   return (
@@ -233,17 +303,46 @@ const handleSubmit = (e) => {
             <AddIcon className="add-remainder-btn" onClick={() => setIsModalOpen(true)} />
           </div>
               <div className="remainder-box">
-                  {remainders.map((bill,index)=>(
-                    <div key={index} className="remainder-card">
-                        <h3>{bill.title}</h3>
-                        <p>🗓️{dayjs(bill.dueDate).format("DD MMM")}</p>
-                        {bill.isPaid ? (
-                          <CheckCircle color="success" sx={{ fontSize: 25,pt:0.5 }} />
-                        ) : (
-                          <AccessTime color="error" sx={{ fontSize: 25,pt:0.5 }} />
-                        )}
-                    </div>
-                  ))}
+                  {remainders.map((bill,index)=>{const id=index;
+                   return(
+                    <React.Fragment key={id}>
+      <HoverAnchor
+        onHoverChange={(isOver, rect) => handleHoverChange(isOver, rect, id)}
+      >
+        <div className="remainder-card">
+          <h3>{bill.title}</h3>
+          <p>🗓️{dayjs(bill.dueDate).format("DD MMM")}</p>
+          {bill.isPaid ? (
+            <CheckCircle color="success" sx={{ fontSize: 25, pt: 0.5 }} />
+          ) : (
+            <AccessTime color="error" sx={{ fontSize: 25, pt: 0.5 }} />
+          )}
+        </div>
+      </HoverAnchor>
+
+      {/* Keep the popup mounted once, but show it only for the hovered id */}
+<div onMouseEnter={handlePopupEnter} onMouseLeave={handlePopupLeave}>
+  {open && hoveredId === id && (
+    <Popup
+      anchorRect={anchorRect}
+      open={open}
+        offset={4}         // was 10
+  arrowSize={6}  
+      onRequestClose={() => {
+        setOpen(false);
+        setHoveredId(null);
+      }}
+    >
+      
+<CheckCircleIcon className="icon-hover icon-green" onClick={()=>upRemainder(bill._id,true)} />
+<DeleteIcon className="icon-hover icon-red" onClick={()=>delRemainder(bill._id)} />
+<HighlightOffIcon className="icon-hover icon-orange" onClick={()=>upRemainder(bill._id,false)}/>
+
+          </Popup>
+  )}
+</div>
+    </React.Fragment>)}
+                  )}
               </div>
           </div>
         </div>     
@@ -260,7 +359,7 @@ const handleSubmit = (e) => {
           <PieChart width={300} height={300}>
             <Pie data={pieData} cx="50%" cy="40%" outerRadius={80} fill="#8884d8" dataKey="value" label={false} labelLine={false}>
               {pieData.map((_, index) => (
-                <Cell key={`cell-${index}`} fill={getRandomLightColor()} />
+                <Cell key={`cell-${index}`} fill={pieColorMapRef.current.get(_.name)} />
               ))}
             </Pie>
             <Tooltip   cursor={{ stroke: "blue", strokeWidth: 2 }}
@@ -307,7 +406,7 @@ const handleSubmit = (e) => {
               <YAxis stroke="white" />
               <Tooltip />
               {allDescriptions.map((desc, index) => (
-                <Bar key={desc} dataKey={desc} stackId="a" fill={getRandomDarkColor()} />
+                <Bar key={desc} dataKey={desc} stackId="a" fill={barColorMapRef.current.get(desc)} />
               ))}
             </BarChart>
           </ResponsiveContainer>

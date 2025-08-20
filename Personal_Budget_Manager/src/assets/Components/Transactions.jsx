@@ -104,7 +104,7 @@ const Transactions = () => {
       payment_method:newTransaction.payment_method,
       date: newTransaction.date, 
     });
-    setNewTransaction({ budgetName: "", amount: "",payment_method:"", description: "", date: new Date().toISOString().split("T")[0] });
+    setNewTransaction({ budgetId: "",Bamount:"",Camount:"", amount: "",payment_method:"", description: "", date: new Date().toISOString().split("T")[0] });
     setIsModalOpen(false);
   };
 

@@ -140,10 +140,11 @@ app.put("/budgets/edit/:id",verifyToken,async (req,res)=>{
       const curBudget=await Budget.findById(budgetId);
       const newTransaction = new Transaction({ userId,budgetId,budgetName:curBudget.name,Camount,Bamount, amount,payment_method, description,date});
       await newTransaction.save();
-      const updatedSavings = Math.abs(curBudget.savings - amount);
+      const famount=amount+Bamount+Camount;
+      const updatedSavings = Math.abs(curBudget.savings - famount);
 
       await Budget.findByIdAndUpdate(budgetId, { 
-        $inc: { Spent: amount },
+        $inc: { Spent: famount },
         $set: { savings: updatedSavings }
       });
       
