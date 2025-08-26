@@ -14,7 +14,7 @@ import "../Styles/Dashboard.css";
 import { PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 
 const Dashboard = () => {
-  const { budgets, transactions,incomes,remainders,addRemainder,upRemainder,delRemainder } = useBudget();
+  const { budgets, transactions,incomes,amounts,remainders,addRemainder,upRemainder,delRemainder } = useBudget();
   const [timeRange, setTimeRange] = useState("Monthly");
   const [pietimeRange,setPieTimeRange]=useState("Monthly");
   const [customStartDate, setCustomStartDate] = useState("");
@@ -32,20 +32,12 @@ const hideTimerRef = useRef(null);
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const totalIncome = incomes.reduce((sum, money) => sum +money.amount, 0);
-  const getTotalByMethod = (arr, method,amount) => 
-  arr.reduce((sum, item) => 
-    item.payment_method === method ? sum + item[amount] : sum
-  , 0);
-
-  const bankIncome = getTotalByMethod(incomes, "Bank","amount");
-  const cashIncome = getTotalByMethod(incomes, "Cash","amount");
-  const bankSpent  = getTotalByMethod(transactions, "Bank","amount")+getTotalByMethod(transactions, "BC","Bamount");
-  const cashSpent  = getTotalByMethod(transactions, "Cash","amount")+getTotalByMethod(transactions, "BC","Camount");
   const totalSpent = budgets.reduce((sum, budget) => sum + budget.Spent, 0);
-  const remainingBalance = totalIncome - totalSpent;
-  const bankRem=bankIncome - bankSpent;
-  const cashRem=cashIncome - cashSpent;
-
+  const bank=amounts.find(a => a.type=="Bank");
+  const cash=amounts.find(a => a.type=="Cash");
+  const bankRem = bank ? bank.total : 0;
+  const cashRem = cash ? cash.total : 0;
+  const remainingBalance = bankRem+cashRem;
   const groupedBudgets = budgets.reduce((acc, budget) => {
     if (!acc[budget.category]) acc[budget.category] = [];
     acc[budget.category].push(budget);

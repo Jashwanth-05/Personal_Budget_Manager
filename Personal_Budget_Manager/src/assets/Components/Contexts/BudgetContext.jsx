@@ -14,7 +14,7 @@ export const BudgetProvider = ({ children }) => {
   const [transactions, setTransactions] = useState([]);
   const [calculations, setCalculations] = useState([]);
   const [remainders, setRemainders] = useState([]);
-
+  const [amounts,setAmounts]= useState([]);
   useEffect(() => {
     const fetchData = async () => {
       const body={userId:user.id}
@@ -24,10 +24,11 @@ export const BudgetProvider = ({ children }) => {
         const incomeRes = await API.post("/incomes/all",body);
         const taxRes=await API.get(`/tax/all/${user.id}`);
         const RemainderRes= await API.post("/remainders/all",body);
+        const amountsRes= await API.post("amounts/all",body);
         // console.log(budgetRes)
         // console.log(transactionRes)
         // console.log(incomeRes)
-        
+        setAmounts(amountsRes.data);
         setBudgets(
           budgetRes.data
             .filter((budget) => {
@@ -79,31 +80,91 @@ export const BudgetProvider = ({ children }) => {
     fetchData();
   }, [user]);
 
-  const addTransaction = async (transaction) => {
-    try {
-      console.log(transaction);
-      const res = await API.post("/transactions/add", transaction);
-      setTransactions((prev) => [...prev, res.data].sort((a,b)=>new Date(b.date)-new Date(a.date)));
-      setBudgets((prevBudgets) =>
-        prevBudgets.map((budget) =>
-          budget._id === transaction.budgetId
-            ? { ...budget, Spent: budget.Spent + transaction.amount,savings: Math.abs(budget.savings - transaction.amount) }
-            : budget
-        )
-      );
-    } catch (error) {
-      console.error("Error adding transaction:", error);
-    }
-  };
+  const transferAmount = async (transfer) => {
+    const {from,to,amount} =transfer;
+  try {
+    const response = await API.post("/amounts/transfer", {
+      userId:user.id,
+      from:from,
+      to:to,
+      amount:Number(amount)
+    });
 
-  const delTransaction=async(transactionId)=>{
-    try{
-      await API.delete(`/transactions/del/${transactionId}`);
-      setTransactions(transactions.filter((txn) => txn._id !== transactionId));
-    }catch(error){
-      console.log("Error Deleting Transaction:",error);
-    }
+
+    setAmounts((prevAmounts) =>
+      prevAmounts.map((acc) => {
+        if (acc.type === from) {
+          return { ...acc, total: acc.total - Number(amount) };
+        }
+        if (acc.type === to) {
+          return { ...acc, total: acc.total + Number(amount) };
+        }
+        return acc;
+      })
+    );
+
+    console.log("Transfer successful:", response.data);
+  } catch (error) {
+    console.error("Error transferring amount:", error);
   }
+};
+
+
+  const addTransaction = async (transaction) => {
+  try {
+    console.log(transaction);
+    const res = await API.post("/transactions/add", transaction);
+
+    // Update transactions
+    setTransactions((prev) =>
+      [...prev, res.data.transaction].sort((a, b) => new Date(b.date) - new Date(a.date))
+    );
+
+    // Update budgets
+    setBudgets((prevBudgets) =>
+      prevBudgets.map((budget) =>
+        budget._id === transaction.budgetId
+          ? {
+              ...budget,
+              Spent: budget.Spent + transaction.amount,
+              savings: Math.abs(budget.savings - transaction.amount)
+            }
+          : budget
+      )
+    );
+
+
+    setAmounts(res.data.amounts);
+  } catch (error) {
+    console.error("Error adding transaction:", error);
+  }
+};
+
+
+const delTransaction = async (transactionId) => {
+  try {
+    const res = await API.delete(`/transactions/del/${transactionId}`);
+
+    // remove transaction from list
+    setTransactions((prev) => prev.filter((txn) => txn._id !== res.data.deletedId));
+
+    // sync amounts
+    setAmounts(res.data.amounts);
+
+    // sync budgets (optional, if you want savings/Spent updated instantly)
+    setBudgets((prevBudgets) =>
+      prevBudgets.map((budget) =>
+        budget._id === res.data.budgetId
+          ? { ...budget, savings: res.data.savings, Spent: budget.Spent - 1 } // 👈 better return Spent too from backend
+          : budget
+      )
+    );
+
+  } catch (error) {
+    console.log("Error Deleting Transaction:", error);
+  }
+};
+
 
 
   const addRemainder = async (newRemainder) => {
@@ -164,7 +225,8 @@ export const BudgetProvider = ({ children }) => {
     try {
       console.log(newIncome)
       const res = await API.post("/incomes/add", newIncome);
-      setIncomes((prev) => [...prev, res.data].sort((a,b)=>new Date(b.date)-new Date(a.date)));
+      setIncomes((prev) => [...prev, res.data.income].sort((a,b)=>new Date(b.date)-new Date(a.date)));
+      setAmounts(res.data.amounts);
     } catch (error) {
       console.error("Error adding income:", error);
     }
@@ -172,8 +234,9 @@ export const BudgetProvider = ({ children }) => {
 
   const delIncome=async(incomeId)=>{
     try{
-      await API.delete(`/incomes/del/${incomeId}`);
+      const res=await API.delete(`/incomes/del/${incomeId}`);
       setIncomes(incomes.filter((bud) => bud._id !== incomeId));
+      setAmounts(res.data.amounts);
     }catch(error){
       console.log("Error Deleting Income:",error);
     }
@@ -198,7 +261,7 @@ export const BudgetProvider = ({ children }) => {
     
   }
   return (
-    <BudgetContext.Provider value={{ budgets,delBudget,delIncome,addRemainder,upRemainder,delRemainder,remainders,delTax,upBudget,calculations,addTax, setBudgets,setTransactions,delTransaction,setIncomes,setUser ,transactions,incomes, addTransaction, addBudget, addIncome,user }}>
+    <BudgetContext.Provider value={{ amounts,budgets,transferAmount,delBudget,delIncome,addRemainder,upRemainder,delRemainder,remainders,delTax,upBudget,calculations,addTax, setBudgets,setTransactions,delTransaction,setIncomes,setUser ,transactions,incomes, addTransaction, addBudget, addIncome,user }}>
       {children}
     </BudgetContext.Provider>
   );

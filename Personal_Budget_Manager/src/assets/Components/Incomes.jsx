@@ -11,9 +11,10 @@ import { format, isWithinInterval, subDays, startOfMonth, endOfMonth, startOfWee
 
 const Incomes = () => {
   const pValues=useRef({});
-  const { incomes,addIncome,delIncome} = useBudget();
+  const { incomes,addIncome,delIncome,transferAmount} = useBudget();
   const user=JSON.parse(localStorage.getItem("user"))
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selfModalOpen,setSelfModalOpen] = useState(false);
     const [filter, setFilter] = useState("monthly");
     const today=new Date();
     const enddate=subDays(today,7);
@@ -24,8 +25,12 @@ const Incomes = () => {
         money: "",
         payment_method:"",
         date: new Date().toISOString().split("T")[0],});
+  const [newTransfer,setNewTransfer]=useState({from:"",to:"",amount:""});
   const handleChange = (e) => {
     setNewIncome({ ...newIncome, [e.target.name]: e.target.value });
+  };
+  const handleTChange = (e) => {
+    setNewTransfer({ ...newTransfer, [e.target.name]: e.target.value });
   };
 
     const filteredIncomes = incomes.filter((Income) => {
@@ -75,6 +80,17 @@ const Incomes = () => {
     setNewIncome({ name: "", money: "",payment_method:"", date: new Date().toISOString().split("T")[0] });
     setIsModalOpen(false);
   };
+
+    const handleTSubmit = (e) => {
+    e.preventDefault();
+    if (!newTransfer.from || !newTransfer.to || !newTransfer.amount) {
+      alert("Please fill all fields!");
+      return;
+    }
+    transferAmount(newTransfer);
+    setNewTransfer({from:"",to:"",amount:""});
+    setSelfModalOpen(false);
+  };
   return (
     <div>
       <Navbar />
@@ -96,7 +112,9 @@ const Incomes = () => {
               </div>
             )}
           </div>
+          <button className="sf-button" onClick={() => setSelfModalOpen(true)}>Self Transfer</button>
           <AddIcon className="add-income-btn" onClick={() => setIsModalOpen(true)} />
+          
         </div>
         <div className="income-table-container">
                 <table className="income-table">
@@ -143,6 +161,28 @@ const Incomes = () => {
                 <input type="date" name="date" value={newIncome.date} onChange={handleChange} />
                 <input type="number" name="money" placeholder="Amount" value={newIncome.money} onChange={handleChange} />
                 <button type="submit">Add Income</button>
+              </form>
+            </div>
+          </div>
+        )}
+        {selfModalOpen && (
+          <div className="overlay">
+            <div className="modal">
+              <CloseIcon className="close-icon" onClick={() => setSelfModalOpen(false)} />
+              <h3>Self Transfer</h3>
+              <form onSubmit={handleTSubmit}>
+                <select name="from" value={newTransfer.from} onChange={handleTChange}>
+                  <option value="">Select From</option>
+                  <option value="Bank">Bank</option>
+                  <option value="Cash">Cash</option>
+                </select>
+                <select name="to" value={newTransfer.to} onChange={handleTChange}>
+                  <option value="">Select To</option>
+                  {newTransfer.from=="Cash"?<option value="Bank">Bank</option>:
+                  <option value="Cash">Cash</option>}
+                </select>
+                <input type="number" name="amount" placeholder="Amount" value={newTransfer.amount} onChange={handleTChange} />
+                <button type="submit">Transfer</button>
               </form>
             </div>
           </div>

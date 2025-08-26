@@ -80,3 +80,17 @@
 .income-table .amount.negative {
   color: red;
 }
+
+.sf-button{
+  background-color: white;
+  color: black;
+  padding: 10px;
+  border: 1px solid black;
+  border-radius: 8px;
+  box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
+}
+
+.sf-button:hover {
+  transform: scale(1.1);
+}

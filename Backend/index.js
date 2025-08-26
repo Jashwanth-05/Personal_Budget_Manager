@@ -15,6 +15,7 @@ const Remainder =require("./Models/Remainder");
 const Transaction = require("./Models/Transaction");
 const jwt = require("jsonwebtoken");
 const Income = require("./Models/Income");
+const Amount = require("./Models/Amount");
 const User = require("./Models/User");
 const Tax =require("./Models/TaxSchema");
 
@@ -83,6 +84,95 @@ app.put("/budgets/edit/:id",verifyToken,async (req,res)=>{
     }
   });
 
+  app.post("/amounts/all",verifyToken, async (req, res) => {
+    const {userId}=req.body;
+    try {
+      const amounts = await Amount.find({userId:userId});
+      res.json(amounts);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+app.post("/amounts/add",verifyToken, async (req, res) => {
+    const { userId,type,total} = req.body;
+    try {
+      const newAmount = new Amount ({userId,type,total});
+      await newAmount.save();
+      res.status(201).json(newAmount);
+    } catch (err) {
+      res.status(400).json({ message: err.message });
+    }
+  });
+
+// Transfer amount from Bank to Cash (or vice versa)
+app.post("/amounts/transfer", verifyToken, async (req, res) => {
+  const { userId, from, to, amount } = req.body;
+
+  const session = await Amount.startSession();
+  session.startTransaction();
+
+  try {
+    // Find source (from) account
+    const fromAccount = await Amount.findOne({ userId, type: from }).session(session);
+    if (!fromAccount) {
+      throw new Error(`${from} account not found`);
+    }
+
+    // Ensure enough balance
+    if (fromAccount.total < amount) {
+      throw new Error(`Insufficient balance in ${from} account`);
+    }
+
+    // Find target (to) account
+    const toAccount = await Amount.findOne({ userId, type: to }).session(session);
+    if (!toAccount) {
+      throw new Error(`${to} account not found`);
+    }
+
+    // Perform transfer
+    fromAccount.total -= amount;
+    toAccount.total += amount;
+
+    await fromAccount.save({ session });
+    await toAccount.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      message: `Transferred ${amount} from ${from} to ${to}`,
+      fromAccount,
+      toAccount
+    });
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+app.put("/amounts/edit/:id",verifyToken,async (req,res)=>{
+    try{
+      const {type,total}=req.body;
+      const UpdatedAmount=await Amount.findByIdAndUpdate(req.params.id,{ $set: { type, total } }, 
+        { new: true, runValidators: true });
+      res.status(200).json({message:"Amount Updated Successfully",UpdatedAmount:UpdatedAmount})
+    }catch(error){
+      console.log("Error Updating Amount",error);
+    }
+})
+
+  app.delete("/amounts/del/:id",verifyToken, async (req, res) => {
+    try {
+      await Amount.findByIdAndDelete(req.params.id);
+      res.json({ message: "Amount deleted successfully" });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   app.post("/remainders/all",verifyToken, async (req, res) => {
     const {userId}=req.body;
     try {
@@ -134,41 +224,116 @@ app.put("/budgets/edit/:id",verifyToken,async (req,res)=>{
     }
   });
 
-  app.post("/transactions/add",verifyToken, async (req, res) => {
-    const { userId,budgetId,name,Camount,Bamount, amount,payment_method, description,date } = req.body;
+  app.post("/transactions/add", verifyToken, async (req, res) => {
+    const { userId, budgetId, name, Camount, Bamount, amount, payment_method, description, date } = req.body;
     try {
-      const curBudget=await Budget.findById(budgetId);
-      const newTransaction = new Transaction({ userId,budgetId,budgetName:curBudget.name,Camount,Bamount, amount,payment_method, description,date});
+      const curBudget = await Budget.findById(budgetId);
+      const newTransaction = new Transaction({
+        userId,
+        budgetId,
+        budgetName: curBudget.name,
+        Camount,
+        Bamount,
+        amount,
+        payment_method,
+        description,
+        date
+      });
       await newTransaction.save();
-      const famount=amount+Bamount+Camount;
+
+      const famount = amount + Bamount + Camount;
       const updatedSavings = Math.abs(curBudget.savings - famount);
 
-      await Budget.findByIdAndUpdate(budgetId, { 
+      await Budget.findByIdAndUpdate(budgetId, {
         $inc: { Spent: famount },
         $set: { savings: updatedSavings }
       });
-      
-      const curTransaction={...newTransaction._doc,}
-      console.log(curTransaction)
-      res.status(201).json(curTransaction);
-    } catch (err) {
+
+      if (payment_method === "BC") {
+        if (Bamount > 0) {
+          await Amount.updateOne(
+            { userId, type: "Bank" },
+            { $inc: { total: -Bamount } },
+            { upsert: true }
+          );
+        }
+        if (Camount > 0) {
+          await Amount.updateOne(
+            { userId, type: "Cash" },
+            { $inc: { total: -Camount } },
+            { upsert: true }
+          );
+        }
+      } else {
+        await Amount.updateOne(
+          { userId, type: payment_method },
+          { $inc: { total: -famount } },
+          { upsert: true }
+        );
+      }
+      const updatedAmounts = await Amount.find({ userId });
+      res.status(201).json({
+      transaction: newTransaction,
+      amounts: updatedAmounts
+    });    } catch (err) {
       res.status(400).json({ message: err.message });
     }
   });
 
-  app.delete("/transactions/del/:id",verifyToken, async (req, res) => {
-    try {
-      const transaction = await Transaction.findById(req.params.id);
-      if (!transaction) return res.status(404).json({ message: "Transaction not found" });
-  
-      await Budget.findByIdAndUpdate(transaction.budgetId, { $inc: { Spent: -transaction.amount } });
-  
-      await transaction.deleteOne();
-      res.json({ message: "Transaction deleted successfully" });
-    } catch (err) {
-      res.status(500).json({ message: err.message });
+app.delete("/transactions/del/:id", verifyToken, async (req, res) => {
+  try {
+    const transaction = await Transaction.findById(req.params.id);
+    if (!transaction) return res.status(404).json({ message: "Transaction not found" });
+
+    const famount = transaction.amount + transaction.Bamount + transaction.Camount;
+
+    // Update budget (both Spent & savings)
+    const curBudget = await Budget.findById(transaction.budgetId);
+    const updatedSavings = curBudget.savings + famount;
+
+    await Budget.findByIdAndUpdate(transaction.budgetId, {
+      $inc: { Spent: -famount },
+      $set: { savings: updatedSavings }
+    });
+
+    // Update amounts (Bank + Cash or single method)
+    if (transaction.payment_method === "BC") {
+      if (transaction.Bamount > 0) {
+        await Amount.updateOne(
+          { userId: transaction.userId, type: "Bank" },
+          { $inc: { total: transaction.Bamount } }
+        );
+      }
+      if (transaction.Camount > 0) {
+        await Amount.updateOne(
+          { userId: transaction.userId, type: "Cash" },
+          { $inc: { total: transaction.Camount } }
+        );
+      }
+    } else {
+      await Amount.updateOne(
+        { userId: transaction.userId, type: transaction.payment_method },
+        { $inc: { total: famount } }
+      );
     }
-  });
+
+    const updatedAmounts = await Amount.find({ userId: transaction.userId });
+
+    await transaction.deleteOne();
+
+    res.json({
+      message: "Transaction deleted successfully",
+      amounts: updatedAmounts,
+      deletedId: transaction._id,
+      budgetId: transaction.budgetId,
+      savings: updatedSavings
+    });
+  } catch (err) {
+      console.error("Error in /transactions/add:", err);
+  res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
   
 
 
@@ -187,20 +352,36 @@ app.put("/budgets/edit/:id",verifyToken,async (req,res)=>{
     try {
       const newIncome = new Income({ userId,source, amount,date,payment_method });
       await newIncome.save();
-      res.status(201).json(newIncome);
+      await Amount.updateOne(
+      { userId, type: payment_method },
+      { $inc: { total: amount } },
+      { upsert: true }
+      );
+      const updatedAmounts = await Amount.find({ userId });
+      res.status(201).json({income:newIncome,amounts:updatedAmounts});
     } catch (err) {
       res.status(400).json({ message: err.message });
     }
   });
 
-  app.delete("/incomes/del/:id",verifyToken, async (req, res) => {
+  app.delete("/incomes/del/:id", verifyToken, async (req, res) => {
     try {
-      await Income.findByIdAndDelete(req.params.id);
-      res.json({ message: "Income entry deleted successfully" });
+      const income = await Income.findById(req.params.id);
+      if (!income) return res.status(404).json({ message: "Income not found" });
+
+      await Amount.updateOne(
+        { userId: income.userId, type: income.payment_method },
+        { $inc: { total: -income.amount } }
+      );
+
+      await income.deleteOne();
+      const updatedAmounts = await Amount.find({ userId });
+      res.json({ message: "Income entry deleted successfully",amounts:updatedAmounts });
     } catch (err) {
       res.status(500).json({ message: err.message });
     }
   });
+
 
   app.post("/tax/add",verifyToken, async (req, res) => {
     const {userId,category,price,description,taxRate,taxAmount,basePrice}=req.body;
