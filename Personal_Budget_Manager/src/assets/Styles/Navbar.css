@@ -90,3 +90,28 @@
     top:1vh;
     left: 21vw;
 }
+
+.calc-icon{
+    position: absolute;
+    z-index: 10;
+    top:2vh;
+    right: 1vw;
+    color: white;
+}
+
+
+.c-icon {
+  cursor: pointer;
+  font-size: 28px;
+  color: white;
+  background: black;
+  transition: transform 0.2s;
+}
+.c-icon{
+  padding: 5px;
+  border:1px solid white;
+  border-radius: 100%;
+}
+.c-icon:hover {
+  transform: scale(1.1);
+}

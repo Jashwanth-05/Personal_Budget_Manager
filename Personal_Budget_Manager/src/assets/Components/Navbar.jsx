@@ -7,13 +7,18 @@ import PaidIcon from '@mui/icons-material/Paid';
 import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PersonIcon from '@mui/icons-material/Person';
+import CloseIcon from "@mui/icons-material/Close";
 import { useNavigate } from 'react-router-dom';
 import CalculateIcon from '@mui/icons-material/Calculate';
+import AssuredWorkloadIcon from '@mui/icons-material/AssuredWorkload';
 import HomeIcon from '@mui/icons-material/Home';
 import Profile from './Profile';
+import Calculator from './Calculator';
+import FloatingDraggableModal from './FloatingDraggableModal.jsx';
 const Navbar = () => {
   const [showProfile,setShowProfile]=useState(false);
     const { setBudgets,setTransactions,setIncomes } = useBudget();
+      const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate=useNavigate();
   const handleShowProfile=()=>{
     setShowProfile(true);
@@ -48,7 +53,7 @@ const Navbar = () => {
               <Link to='/incomes'><li><CurrencyRupeeIcon/><span>Incomes</span></li></Link>
               <Link to='/budgets'><li><TextSnippetIcon /><span>Budgets</span></li></Link>
               <Link to='/transactions'><li><PaidIcon/><span>Transactions</span></li></Link>
-              <Link to='/taxcalc'><li><CalculateIcon /><span>Tax Calculation</span></li></Link>
+              <Link to='/taxcalc'><li><AssuredWorkloadIcon /><span>Tax Calculation</span></li></Link>
             </ul>
           </nav>
          
@@ -56,6 +61,15 @@ const Navbar = () => {
         <div className='profile-container'>
             {showProfile && <Profile onClose={()=>{setShowProfile(false)}} handleSignout={handleSignout} />}
           </div>
+          <div className='calc-icon'>
+            <CalculateIcon className='c-icon' onClick={()=>setIsModalOpen(true)} />
+          </div>
+
+          
+          <FloatingDraggableModal show={isModalOpen} onClose={()=>setIsModalOpen(false)}>
+            <Calculator/>
+          </FloatingDraggableModal>
+
     </div>
   )
 }

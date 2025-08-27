@@ -1,0 +1,28 @@
+/* Floating modal */
+.c-modal {
+  position: fixed; /* stays above page */
+  width: 300px;
+  background: #1e1e1e;
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+  cursor: grab;
+  user-select: none;
+  z-index: 9999; /* stays above all */
+}
+
+/* Modal header (draggable area) */
+.c-modal-header {
+  padding: 10px;
+  background: white;
+  color: black;
+  border-radius: 12px 12px 0 0;
+  cursor: grab;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Modal content */
+.c-modal-content {
+  padding: 15px;
+}
