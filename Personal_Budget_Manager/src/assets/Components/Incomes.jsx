@@ -3,8 +3,13 @@ import { useRef } from "react";
 import Navbar from "./Navbar";
 import "../Styles/Incomes.css";
 import { useBudget } from "./Contexts/BudgetContext";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import "../NotoSans-Regular-normal.js"
+import "../NotoSans-Bold-normal.js"
 import { List, ListItem, ListItemText, IconButton, Typography, CircularProgress } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { format, isWithinInterval, subDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns";
@@ -91,6 +96,46 @@ const Incomes = () => {
     setNewTransfer({from:"",to:"",amount:""});
     setSelfModalOpen(false);
   };
+
+  const exportIncomeToPDF = () => {
+  const doc = new jsPDF();
+
+  doc.setFont("NotoSans-Regular", "normal");
+  doc.setFontSize(16);
+  doc.text("Incomes Report", 14, 20);
+
+  const tableColumn = ["Date", "Source", "Method", "Amount"];
+  const tableRows = [];
+
+  let totalAmount = 0;
+  filteredIncomes.forEach((income) => {
+    const amount = income.amount;
+    totalAmount += amount;
+
+    tableRows.push([
+      format(new Date(income.date), "dd/MM/yyyy"),
+      income.source || "-",
+      income.payment_method || "-",
+      `₹${amount}`,
+    ]);
+  });
+
+  tableRows.push([
+    { content: "Total", colSpan: 3, styles: { halign: "right", font: "NotoSans-Bold" } },
+    { content: `₹${totalAmount}`, styles: { font: "NotoSans-Bold" } },
+  ]);
+
+  autoTable(doc, {
+    head: [tableColumn],
+    body: tableRows,
+    startY: 30,
+    styles: { fontSize: 10, font: "NotoSans-Regular" },
+    headStyles: { fillColor: [41, 128, 185], font: "NotoSans-Bold" },
+  });
+
+  doc.save("incomes.pdf");
+  };
+
   return (
     <div>
       <Navbar />
@@ -113,7 +158,11 @@ const Incomes = () => {
             )}
           </div>
           <button className="sf-button" onClick={() => setSelfModalOpen(true)}>Self Transfer</button>
+          <div className="in-btns">
+          <FileDownloadIcon className="export-btn" onClick={exportIncomeToPDF}/>
           <AddIcon className="add-income-btn" onClick={() => setIsModalOpen(true)} />
+          </div>
+
           
         </div>
         <div className="income-table-container">

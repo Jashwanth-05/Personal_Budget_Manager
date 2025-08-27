@@ -2,10 +2,15 @@ import React, { useState } from "react";
 import { evaluate } from "mathjs";
 import { useRef } from "react";
 import Navbar from "./Navbar";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import "../NotoSans-Regular-normal.js"
+import "../NotoSans-Bold-normal.js"
 import "../Styles/Transactions.css";
 import { useBudget } from "./Contexts/BudgetContext";
 import { List, ListItem, ListItemText, IconButton, Typography, CircularProgress } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { format, isWithinInterval, subDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns";
@@ -108,6 +113,53 @@ const Transactions = () => {
     setIsModalOpen(false);
   };
 
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+
+    doc.setFont("NotoSans-Regular", "normal");
+    doc.setFontSize(16);
+    doc.text("Transactions Report", 14, 20);
+
+ 
+    const tableColumn = ["Date", "Budget Name", "Description", "Method", "Amount"];
+    const tableRows = [];
+
+    let totalAmount = 0;
+    filteredTransactions.forEach((transaction) => {
+      const amount =
+        transaction.payment_method === "BC"
+          ? transaction.Bamount + transaction.Camount
+          : transaction.amount;
+
+      totalAmount += amount;
+
+      tableRows.push([
+        format(new Date(transaction.date), "dd/MM/yyyy"),
+        transaction.budgetName || "-",
+        transaction.description || "-",
+        transaction.payment_method,
+        `₹${amount}`,
+      ]);
+    });
+
+    tableRows.push([
+      { content: "Total", colSpan: 4, styles: { halign: "right",font: "NotoSans-Bold" } },
+      { content: `₹${totalAmount}`, styles: { font: "NotoSans-Bold" } },
+    ]);
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 30,
+      styles: { fontSize: 10,font: "NotoSans-Regular" },
+      headStyles: { fillColor: [41, 128, 185] }, // Blue header
+    });
+
+    doc.save("transactions.pdf");
+  };
+
+
+
   return (
     <div>
       <Navbar />
@@ -129,7 +181,10 @@ const Transactions = () => {
               </div>
             )}
           </div>
+          <div className="in-btns">
+          <FileDownloadIcon className="export-btn" onClick={exportToPDF}/>
           <AddIcon className="add-transaction-btn" onClick={() => setIsModalOpen(true)} />
+          </div>
         </div>
         <div className="transactions-table-container">
         <table className="transactions-table">

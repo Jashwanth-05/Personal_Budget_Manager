@@ -17,6 +17,8 @@
     "axios": "^1.8.1",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
+    "jspdf": "^3.0.2",
+    "jspdf-autotable": "^5.0.2",
     "mathjs": "^14.6.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

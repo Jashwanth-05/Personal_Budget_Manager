@@ -94,3 +94,25 @@
 .sf-button:hover {
   transform: scale(1.1);
 }
+
+.in-btns{
+  width: 100px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.export-btn {
+  cursor: pointer;
+  font-size: 28px;
+  color: black;
+  transition: transform 0.2s;
+}
+.export-btn{
+  padding: 5px;
+  border:1px solid black;
+  border-radius: 100%;
+}
+.export-btn:hover {
+  transform: scale(1.1);
+}
