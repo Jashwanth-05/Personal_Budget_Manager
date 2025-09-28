@@ -16,69 +16,101 @@ export const BudgetProvider = ({ children }) => {
   const [remainders, setRemainders] = useState([]);
   const [amounts,setAmounts]= useState([]);
   useEffect(() => {
-    const fetchData = async () => {
-      const body={userId:user.id}
-      try {
-        const budgetRes = await API.post("/budgets/all",body);
-        const transactionRes = await API.post("/transactions/all",body);
-        const incomeRes = await API.post("/incomes/all",body);
-        const taxRes=await API.get(`/tax/all/${user.id}`);
-        const RemainderRes= await API.post("/remainders/all",body);
-        const amountsRes= await API.post("amounts/all",body);
-        // console.log(budgetRes)
-        // console.log(transactionRes)
-        // console.log(incomeRes)
-        setAmounts(amountsRes.data);
-        setBudgets(
-          budgetRes.data
-            .filter((budget) => {
-              if (!budget.valid) return false; 
-              const today = new Date();
-              const validDate = new Date(budget.valid);
-              return !isNaN(validDate) && validDate >= today;
-            })
-        );
-        
-        setTransactions(
-          transactionRes.data
-            .sort((a, b) => new Date(b.date) - new Date(a.date))
-        );
-        
-        setIncomes(
-          incomeRes.data
-            .filter((income) => {
-              if (!income.date) return false; 
-              const today = new Date();
-              const svalidDate=startOfMonth(today);
-              const evalidDate = endOfMonth(today);
-              const indate = new Date(income.date);
-              return !isNaN(indate) && indate <= evalidDate && indate>=svalidDate;
-            })
-            .sort((a, b) => new Date(b.date) - new Date(a.date))
-        );
-        
-        setRemainders(
-              RemainderRes.data
-                .filter((bill) => {
-                  if (!bill.dueDate) return false; 
-                  const today = dayjs(); 
-                  const dueDate = dayjs(bill.dueDate);
-                  return dueDate.isAfter(today, "day") || dueDate.isSame(today, "day");
-                })
-                .sort((a, b) => dayjs(a.dueDate).valueOf() - dayjs(b.dueDate).valueOf())
-            );
+    let mounted = true;
 
-        setCalculations(
-          taxRes.data
-            .sort((a, b) => new Date(b.date) - new Date(a.date))
-        );        
-      } catch (error) {
-        console.error("Error fetching data:", error);
+  const fetchData = async () => {
+    if (!mounted) return;
+    const body = { userId: user.id };
+    try {
+      const budgetRes = await API.post("/budgets/all", body);
+      const transactionRes = await API.post("/transactions/all", body);
+      const incomeRes = await API.post("/incomes/all", body);
+      const taxRes = await API.get(`/tax/all/${user.id}`);
+      const RemainderRes = await API.post("/remainders/all", body);
+      const amountsRes = await API.post("amounts/all", body);
+
+      setAmounts(amountsRes.data);
+
+      setBudgets(
+        budgetRes.data.filter((budget) => {
+          if (!budget.valid) return false;
+          const today = new Date();
+          const validDate = new Date(budget.valid);
+          return !isNaN(validDate) && validDate >= today;
+        })
+      );
+
+      setTransactions(
+        transactionRes.data.sort((a, b) => new Date(b.date) - new Date(a.date))
+      );
+
+      const today = new Date();
+      const svalidDate = startOfMonth(today);
+      const evalidDate = endOfMonth(today);
+
+      let monthlyIncomes = incomeRes.data
+        .filter((income) => {
+          if (!income.date) return false;
+          const indate = new Date(income.date);
+          return !isNaN(indate) && indate <= evalidDate && indate >= svalidDate;
+        })
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      if (monthlyIncomes.length === 0) {
+        console.log("working");
+        const totalBalance = amountsRes.data.reduce(
+          (acc, curr) => acc + curr.total,
+          0
+        );
+
+        const carryForwardIncome = {
+          userId: user.id,
+          source: "Remaining Balance Carry Forward",
+          amount: totalBalance,
+          date: today.toISOString(),
+          payment_method: "carry-forward",
+        };
+
+        try {
+          const res = await API.post("/incomes/add", carryForwardIncome);
+          monthlyIncomes = [res.data.income];
+          setAmounts(res.data.amounts);
+        } catch (err) {
+          console.error("Error adding carry-forward income:", err);
+        }
       }
-    };
 
-    fetchData();
+      setIncomes(monthlyIncomes);
+
+      setRemainders(
+        RemainderRes.data
+          .filter((bill) => {
+            if (!bill.dueDate) return false;
+            const today = dayjs();
+            const dueDate = dayjs(bill.dueDate);
+
+            return (
+              dueDate.month() === today.month() &&
+              dueDate.year() === today.year()
+            );
+          })
+          .sort((a, b) => dayjs(a.dueDate).valueOf() - dayjs(b.dueDate).valueOf())
+      );
+
+      setCalculations(
+        taxRes.data.sort((a, b) => new Date(b.date) - new Date(a.date))
+      );
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  fetchData();
+   return () => {
+    mounted = false;
+  };
   }, [user]);
+
 
   const transferAmount = async (transfer) => {
     const {from,to,amount} =transfer;
@@ -127,7 +159,7 @@ export const BudgetProvider = ({ children }) => {
           ? {
               ...budget,
               Spent: budget.Spent + transaction.amount,
-              savings: Math.abs(budget.savings - transaction.amount)
+              savings: Math.max(0,budget.savings - transaction.amount)
             }
           : budget
       )
@@ -144,7 +176,8 @@ export const BudgetProvider = ({ children }) => {
 const delTransaction = async (transactionId) => {
   try {
     const res = await API.delete(`/transactions/del/${transactionId}`);
-
+    console.log(res.data.updatedBudget);
+    const {_id,savings,Spent,overflow}=res.data.updatedBudget;
     // remove transaction from list
     setTransactions((prev) => prev.filter((txn) => txn._id !== res.data.deletedId));
 
@@ -154,8 +187,8 @@ const delTransaction = async (transactionId) => {
     // sync budgets (optional, if you want savings/Spent updated instantly)
     setBudgets((prevBudgets) =>
       prevBudgets.map((budget) =>
-        budget._id === res.data.budgetId
-          ? { ...budget, savings: res.data.savings, Spent: budget.Spent - 1 } // 👈 better return Spent too from backend
+        budget._id === _id
+          ? { ...budget, savings: savings, Spent: Spent,overflow:overflow}
           : budget
       )
     );
@@ -175,12 +208,34 @@ const delTransaction = async (transactionId) => {
       console.error("Error adding remainder:", error);
     }
   };
-  const upRemainder=async(updRemainderID,isPaid)=>{
+  const upRemainder=async(updRemainderID,body)=>{
+    const {isPaid,isRepeated}=body;
     try{
-      const res=await API.put(`/remainders/edit/${updRemainderID}`,{isPaid:isPaid})
-      setRemainders((old)=>{
-        return old.map((value)=>value._id===updRemainderID?{...value,isPaid:isPaid}:value)
-      })
+      const res=await API.put(`/remainders/edit/${updRemainderID}`,body);
+      console.log(res.data);
+      setRemainders((old) => {
+        const updated = old.map((value) =>
+          value._id === updRemainderID
+            ? { ...value, isPaid: isPaid, isRepeated: isRepeated }
+            : value
+        );
+
+        let newList = res.data.newRemainder ? [...updated, res.data.newRemainder] : updated;
+
+        // ✅ Keep only bills in current month (including overdue)
+        const today = dayjs();
+        newList = newList.filter((bill) => {
+          if (!bill.dueDate) return false;
+          const dueDate = dayjs(bill.dueDate);
+          return dueDate.month() === today.month() && dueDate.year() === today.year();
+        });
+
+        // ✅ Sort by dueDate
+        newList.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+
+        return newList;
+      });
+
     }catch(error){
       console.log("Error Updating Remainder",error);
     }
@@ -220,6 +275,15 @@ const delTransaction = async (transactionId) => {
       console.log("Error Deleting Budget:",error);
     }
   }
+
+  const createFromPresets = async (body) => {
+    try {
+      const res = await API.post("/budgets/createFromPresets", body);
+      // setBudgets((prev) => [...prev, res.data]);
+    } catch (error) {
+      console.error("Error adding budget presets:", error);
+    }
+  };
 
   const addIncome = async (newIncome) => {
     try {
@@ -261,7 +325,7 @@ const delTransaction = async (transactionId) => {
     
   }
   return (
-    <BudgetContext.Provider value={{ amounts,budgets,transferAmount,delBudget,delIncome,addRemainder,upRemainder,delRemainder,remainders,delTax,upBudget,calculations,addTax, setBudgets,setTransactions,delTransaction,setIncomes,setUser ,transactions,incomes, addTransaction, addBudget, addIncome,user }}>
+    <BudgetContext.Provider value={{ amounts,budgets,createFromPresets,transferAmount,delBudget,delIncome,addRemainder,upRemainder,delRemainder,remainders,delTax,upBudget,calculations,addTax, setBudgets,setTransactions,delTransaction,setIncomes,setUser ,transactions,incomes, addTransaction, addBudget, addIncome,user }}>
       {children}
     </BudgetContext.Provider>
   );

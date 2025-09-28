@@ -10,6 +10,7 @@ import "../Styles/Transactions.css";
 import { useBudget } from "./Contexts/BudgetContext";
 import { List, ListItem, ListItemText, IconButton, Typography, CircularProgress } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import AlertDialog from "./AlertDialog.jsx";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -18,6 +19,7 @@ import { format, isWithinInterval, subDays, startOfMonth, endOfMonth, startOfWee
 const Transactions = () => {
   const pValues=useRef({});
   const { transactions, addTransaction, delTransaction,budgets,upBudget} = useBudget();
+  const [isExportDialogOpen,setIsExportDialogOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filter, setFilter] = useState("monthly");
   const user=JSON.parse(localStorage.getItem("user"));
@@ -113,50 +115,64 @@ const Transactions = () => {
     setIsModalOpen(false);
   };
 
+  let totalAmount = 0;
+  filteredTransactions.forEach((transaction) => {
+    const amount =
+      transaction.payment_method === "BC"
+        ? transaction.Bamount + transaction.Camount
+        : transaction.amount;
+
+    totalAmount += amount;});
+
   const exportToPDF = () => {
-    const doc = new jsPDF();
+  const doc = new jsPDF();
 
-    doc.setFont("NotoSans-Regular", "normal");
-    doc.setFontSize(16);
-    doc.text("Transactions Report", 14, 20);
+  // Get current month name
+  const monthName = format(new Date(), "MMMM yyyy"); // e.g., "September 2025"
 
- 
-    const tableColumn = ["Date", "Budget Name", "Description", "Method", "Amount"];
-    const tableRows = [];
+  // Set PDF title and header
+  doc.setFont("NotoSans-Regular", "normal");
+  doc.setFontSize(16);
+  doc.text(`Transactions Report - ${monthName}`, 14, 20);
 
-    let totalAmount = 0;
-    filteredTransactions.forEach((transaction) => {
-      const amount =
-        transaction.payment_method === "BC"
-          ? transaction.Bamount + transaction.Camount
-          : transaction.amount;
+  const tableColumn = ["Date", "Budget Name", "Description", "Method", "Amount"];
+  const tableRows = [];
 
-      totalAmount += amount;
+  let totalAmount = 0;
+  filteredTransactions.forEach((transaction) => {
+    const amount =
+      transaction.payment_method === "BC"
+        ? transaction.Bamount + transaction.Camount
+        : transaction.amount;
 
-      tableRows.push([
-        format(new Date(transaction.date), "dd/MM/yyyy"),
-        transaction.budgetName || "-",
-        transaction.description || "-",
-        transaction.payment_method,
-        `₹${amount}`,
-      ]);
-    });
+    totalAmount += amount;
 
     tableRows.push([
-      { content: "Total", colSpan: 4, styles: { halign: "right",font: "NotoSans-Bold" } },
-      { content: `₹${totalAmount}`, styles: { font: "NotoSans-Bold" } },
+      format(new Date(transaction.date), "dd/MM/yyyy"),
+      transaction.budgetName || "-",
+      transaction.description || "-",
+      transaction.payment_method,
+      `₹${amount}`,
     ]);
+  });
 
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: 30,
-      styles: { fontSize: 10,font: "NotoSans-Regular" },
-      headStyles: { fillColor: [41, 128, 185] }, // Blue header
-    });
+  tableRows.push([
+    { content: "Total", colSpan: 4, styles: { halign: "right", font: "NotoSans-Bold" } },
+    { content: `₹${totalAmount}`, styles: { font: "NotoSans-Bold" } },
+  ]);
 
-    doc.save("transactions.pdf");
-  };
+  autoTable(doc, {
+    head: [tableColumn],
+    body: tableRows,
+    startY: 30,
+    styles: { fontSize: 10, font: "NotoSans-Regular" },
+    headStyles: { fillColor: [41, 128, 185] }, // Blue header
+  });
+
+  // Save file with month in the filename
+  doc.save(`transactions_${monthName}.pdf`);
+};
+
 
 
 
@@ -182,7 +198,7 @@ const Transactions = () => {
             )}
           </div>
           <div className="in-btns">
-          <FileDownloadIcon className="export-btn" onClick={exportToPDF}/>
+          <FileDownloadIcon className="export-btn" onClick={()=> setIsExportDialogOpen(true)}/>
           <AddIcon className="add-transaction-btn" onClick={() => setIsModalOpen(true)} />
           </div>
         </div>
@@ -219,6 +235,9 @@ const Transactions = () => {
           </tbody>
         </table>
         </div>
+        <div className="transactions-total">
+          <span style={{"color":"red"}}>Total: </span> <span>{totalAmount}</span>
+        </div>
 
         {isModalOpen && (
           <div className="overlay">
@@ -249,6 +268,15 @@ const Transactions = () => {
           </div>
         )}
       </main>
+      <AlertDialog
+        open={isExportDialogOpen}
+        onClose={() => setIsExportDialogOpen(false)}
+        onConfirm={exportToPDF}
+        title="Download Transactions Report?"
+        description="This will download the Transactions Report PDF. Do you want to continue?"
+        cancelText="No"
+        confirmText="Yes"
+      />
     </div>
   );
 };

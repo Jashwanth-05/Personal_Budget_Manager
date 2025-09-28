@@ -182,3 +182,10 @@
     font-size: 15px;
     padding-left: 2px;
   }
+
+  .transactions-total{
+    padding: 5px;
+    text-align: right;
+    font-size: medium;
+    font-weight: 800;
+  }

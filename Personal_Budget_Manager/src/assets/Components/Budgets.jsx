@@ -6,11 +6,14 @@ import { CircularProgress, IconButton } from "@mui/material";
 import CircularProgressWithLabel from "./CircularProgressWithLabel"
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
+import AddBoxIcon from '@mui/icons-material/AddBox';
 import CloseIcon from "@mui/icons-material/Close";
+import AlertDialog from "./AlertDialog";
 
 const Budgets = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { addBudget, budgets, delBudget } = useBudget();
+  const { addBudget, budgets, delBudget,createFromPresets } = useBudget();
+  const [isPresetDialogOpen, setIsPresetDialogOpen] = useState(false);
   const [newBudget, setNewBudget] = useState({
     category: "Monthly",
     name: "",
@@ -27,18 +30,31 @@ const Budgets = () => {
 
   const handlebudgetadd = (e) => {
     e.preventDefault();
-    if (!newBudget.name || !newBudget.budget || (newBudget.category === "Custom" && !newBudget.valid)) {
+    if (
+      !newBudget.name ||
+      !newBudget.budget ||
+      (newBudget.category === "Custom" && !newBudget.valid)
+    ) {
       alert("Please fill all fields!");
       return;
     }
 
     let date = new Date();
-    if (newBudget.category === "Monthly") {
-      date.setMonth(date.getMonth() + 1);
+
+   if (newBudget.category === "Monthly") {
+      // Last date of current month at 23:59:59.999
+      date = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+      date.setHours(23, 59, 59, 999);
     } else if (newBudget.category === "Weekly") {
-      date.setDate(date.getDate() + 7);
+      // Last Sunday at 23:59:59.999
+      const day = date.getDay(); // 0 = Sunday
+      const diff = (7 - day) % 7;
+      date.setDate(date.getDate() + diff);
+      date.setHours(23, 59, 59, 999);
     } else {
+      // Custom
       date = new Date(newBudget.valid);
+      date.setHours(23, 59, 59, 999);
     }
 
     addBudget({
@@ -54,13 +70,27 @@ const Budgets = () => {
     setIsModalOpen(false);
   };
 
+  const handleCreateFromPresets = () => {
+  let date = new Date();
+  date = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  date.setHours(23, 59, 59, 999);
+
+  createFromPresets({
+    userId: user.id,
+    valid: date,
+  });
+  };
+
   return (
     <div>
       <Navbar />
       <main className="budgets-main">
         <div className="budgets-header">
           <h2 className="budgets-title">Budgets</h2>
+          <div className="budgets-options">
+          <button className="sf-button" onClick={() => setIsPresetDialogOpen(true)}>Budgets Preset</button>
           <AddIcon className="add-icon" onClick={() => setIsModalOpen(true)} />
+          </div>
         </div>
 
         {/* Display 3 categories side by side */}
@@ -91,9 +121,14 @@ const Budgets = () => {
                             size={40}
                             className="budget-progress"
                           />
-                          <IconButton edge="end" color="error" onClick={() => delBudget(budget._id)}>
-                            <DeleteIcon />
+                          <div className="budget-operation-bts">
+                            <IconButton color="error" onClick={() => delBudget(budget._id)}>
+                            <DeleteIcon/>
                           </IconButton>
+                          <IconButton>
+                            <AddBoxIcon style={{"color":"#fd7e14"}}/>
+                          </IconButton>
+                          </div>
                         </div>
                       </div>
                     ))
@@ -143,6 +178,15 @@ const Budgets = () => {
             </div>
           </div>
         )}
+        <AlertDialog
+          open={isPresetDialogOpen}
+          onClose={() => setIsPresetDialogOpen(false)}
+          onConfirm={handleCreateFromPresets}
+          title="Create Budgets from Presets?"
+          description="This will create new budgets from your saved presets. Do you want to continue?"
+          cancelText="No, Cancel"
+          confirmText="Yes, Create"
+        />
       </main>
     </div>
   );

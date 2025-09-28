@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { useRef } from "react";
+import { evaluate } from "mathjs";
 import Navbar from "./Navbar";
 import "../Styles/Incomes.css";
 import { useBudget } from "./Contexts/BudgetContext";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import "../NotoSans-Regular-normal.js"
+import AlertDialog from "./AlertDialog.jsx";
 import "../NotoSans-Bold-normal.js"
 import { List, ListItem, ListItemText, IconButton, Typography, CircularProgress } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
@@ -18,6 +20,7 @@ const Incomes = () => {
   const pValues=useRef({});
   const { incomes,addIncome,delIncome,transferAmount} = useBudget();
   const user=JSON.parse(localStorage.getItem("user"))
+  const [isExportDialogOpen,setIsExportDialogOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selfModalOpen,setSelfModalOpen] = useState(false);
     const [filter, setFilter] = useState("monthly");
@@ -27,7 +30,7 @@ const Incomes = () => {
   end: format(today, "yyyy-MM-dd"), });
   const [newIncome, setNewIncome] = useState({
         name: "",
-        money: "",
+        amount: "",
         payment_method:"",
         date: new Date().toISOString().split("T")[0],});
   const [newTransfer,setNewTransfer]=useState({from:"",to:"",amount:""});
@@ -71,18 +74,18 @@ const Incomes = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!newIncome.name || !newIncome.money || !newIncome.payment_method || !newIncome.date) {
+    if (!newIncome.name || !newIncome.amount || !newIncome.payment_method || !newIncome.date) {
       alert("Please fill all fields!");
       return;
     }
     addIncome({
       userId:user.id,
       source:newIncome.name,
-      amount:newIncome.money,
+      amount:newIncome.amount,
       payment_method:newIncome.payment_method,
       date:new Date(newIncome.date)
     });
-    setNewIncome({ name: "", money: "",payment_method:"", date: new Date().toISOString().split("T")[0] });
+    setNewIncome({ name: "", amount: "",payment_method:"", date: new Date().toISOString().split("T")[0] });
     setIsModalOpen(false);
   };
 
@@ -100,9 +103,13 @@ const Incomes = () => {
   const exportIncomeToPDF = () => {
   const doc = new jsPDF();
 
+  // Get current month name
+  const monthName = format(new Date(), "MMMM yyyy"); // e.g., "September 2025"
+
+  // Set PDF title and header
   doc.setFont("NotoSans-Regular", "normal");
   doc.setFontSize(16);
-  doc.text("Incomes Report", 14, 20);
+  doc.text(`Incomes Report - ${monthName}`, 14, 20);
 
   const tableColumn = ["Date", "Source", "Method", "Amount"];
   const tableRows = [];
@@ -133,9 +140,27 @@ const Incomes = () => {
     headStyles: { fillColor: [41, 128, 185], font: "NotoSans-Bold" },
   });
 
-  doc.save("incomes.pdf");
-  };
+  // Save file with month in the filename
+  doc.save(`incomes_${monthName}.pdf`);
+};
 
+
+  const handleBlur = (e) => {
+  const {name,value}=e.target;
+  if(pValues.current[name]===value){
+    console.log("True");
+    return;
+  }
+  console.log("False");
+  try {
+    const result = evaluate(value);
+    console.log(result);
+    setNewIncome({...newIncome,[name]:result})
+    pValues.current[name]=value;
+  } catch {
+    console.error("Invalid expression");
+  }
+  };
   return (
     <div>
       <Navbar />
@@ -159,7 +184,7 @@ const Incomes = () => {
           </div>
           <button className="sf-button" onClick={() => setSelfModalOpen(true)}>Self Transfer</button>
           <div className="in-btns">
-          <FileDownloadIcon className="export-btn" onClick={exportIncomeToPDF}/>
+          <FileDownloadIcon className="export-btn" onClick={()=>setIsExportDialogOpen(true)}/>
           <AddIcon className="add-income-btn" onClick={() => setIsModalOpen(true)} />
           </div>
 
@@ -208,7 +233,7 @@ const Incomes = () => {
                   <option value="Cash">Cash</option>
                 </select>
                 <input type="date" name="date" value={newIncome.date} onChange={handleChange} />
-                <input type="number" name="money" placeholder="Amount" value={newIncome.money} onChange={handleChange} />
+                <input type="text" name="amount" placeholder="Amount" value={newIncome.amount} onChange={handleChange} onBlur={handleBlur}/>
                 <button type="submit">Add Income</button>
               </form>
             </div>
@@ -230,13 +255,22 @@ const Incomes = () => {
                   {newTransfer.from=="Cash"?<option value="Bank">Bank</option>:
                   <option value="Cash">Cash</option>}
                 </select>
-                <input type="number" name="amount" placeholder="Amount" value={newTransfer.amount} onChange={handleTChange} />
+                <input type="text" name="amount" placeholder="Amount" value={newTransfer.amount} onChange={handleTChange} onBlur={handleBlur}/>
                 <button type="submit">Transfer</button>
               </form>
             </div>
           </div>
         )}
         </div>
+        <AlertDialog
+          open={isExportDialogOpen}
+          onClose={() => setIsExportDialogOpen(false)}
+          onConfirm={exportIncomeToPDF}
+          title="Download Income Report?"
+          description="This will download the Income Report PDF. Do you want to continue?"
+          cancelText="No"
+          confirmText="Yes"
+        />
       </main>
     </div>
   );

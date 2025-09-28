@@ -84,6 +84,65 @@ app.put("/budgets/edit/:id",verifyToken,async (req,res)=>{
     }
   });
 
+  app.post("/users/:id/presets/bulk", verifyToken, async (req, res) => {
+  try {
+    const { presets } = req.body; // expects an array of { name, category, defaultAmount }
+
+    if (!Array.isArray(presets) || presets.length === 0) {
+      return res.status(400).json({ message: "Presets must be a non-empty array" });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { $push: { presets: { $each: presets } } }, // push multiple
+      { new: true }
+    );
+
+    res.json(user.presets);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+  });
+
+
+  app.get("/users/:id/presets", verifyToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    res.json(user.presets);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+  });
+
+  app.post("/budgets/createFromPresets", verifyToken, async (req, res) => {
+  try {
+    const { userId, valid } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user || user.presets.length === 0) {
+      return res.status(400).json({ message: "No presets found" });
+    }
+
+    const newBudgets = user.presets.map(preset => ({
+      userId,
+      category:preset.category,
+      name: preset.name,
+      budget: preset.defaultAmount,
+      Spent: 0,
+      savings: preset.defaultAmount,
+      valid,
+      overflow: false
+    }));
+
+    const savedBudgets = await Budget.insertMany(newBudgets);
+    res.status(201).json(savedBudgets);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+  });
+
+
+
   app.post("/amounts/all",verifyToken, async (req, res) => {
     const {userId}=req.body;
     try {
@@ -186,7 +245,7 @@ app.put("/amounts/edit/:id",verifyToken,async (req,res)=>{
   app.post("/remainders/add",verifyToken, async (req, res) => {
     const { userId,title,dueDate,isPaid } = req.body;
     try {
-      const newRemainder = new Remainder ({userId,title,dueDate,isPaid:false});
+      const newRemainder = new Remainder ({userId,title,dueDate,isPaid:false,isRepeated:false});
       await newRemainder.save();
       res.status(201).json(newRemainder);
     } catch (err) {
@@ -194,16 +253,50 @@ app.put("/amounts/edit/:id",verifyToken,async (req,res)=>{
     }
   });
 
-  app.put("/remainders/edit/:id",verifyToken,async (req,res)=>{
-    try{
-      const {isPaid}=req.body;
-      const UpdatedRemainder=await Remainder.findByIdAndUpdate(req.params.id,{$set:{isPaid}}, 
-        { new: true, runValidators: true });
-      res.status(200).json({message:"Remainder Updated Successfully",UpdatedRemainder:UpdatedRemainder})
-    }catch(error){
-      console.log("Error Updating Remainder",error);
+  app.put("/remainders/edit/:id", verifyToken, async (req, res) => {
+  try {
+    const { isPaid, isRepeated } = req.body;
+
+    const remainder = await Remainder.findById(req.params.id);
+    if (!remainder) {
+      return res.status(404).json({ message: "Remainder not found" });
     }
-})
+
+    remainder.isPaid = isPaid;
+    remainder.isRepeated = isRepeated ?? remainder.isRepeated;
+    await remainder.save();
+    let newRemainder = null; 
+    if (isPaid && remainder.isRepeated) {
+      const currentDueDate = new Date(remainder.dueDate);
+
+      const nextMonthDate = new Date(currentDueDate);
+      nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
+
+      if (nextMonthDate.getDate() !== currentDueDate.getDate()) {
+        nextMonthDate.setDate(0); 
+      }
+
+      newRemainder = new Remainder({
+        userId: remainder.userId,
+        title: remainder.title,
+        dueDate: nextMonthDate,
+        isPaid: false,
+        isRepeated: true,
+      });
+
+      await newRemainder.save();
+    }
+
+    res.status(200).json({
+      message: "Remainder updated successfully",
+      remainder,newRemainder
+    });
+  } catch (error) {
+    console.error("Error Updating Remainder:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+  });
+
 
   app.delete("/remainders/del/:id",verifyToken, async (req, res) => {
     try {
@@ -242,12 +335,13 @@ app.put("/amounts/edit/:id",verifyToken,async (req,res)=>{
       await newTransaction.save();
 
       const famount = amount + Bamount + Camount;
-      const updatedSavings = Math.abs(curBudget.savings - famount);
+      const updatedSavings = Math.max(0, curBudget.savings - famount);
 
       await Budget.findByIdAndUpdate(budgetId, {
         $inc: { Spent: famount },
         $set: { savings: updatedSavings }
       });
+
 
       if (payment_method === "BC") {
         if (Bamount > 0) {
@@ -283,18 +377,25 @@ app.put("/amounts/edit/:id",verifyToken,async (req,res)=>{
 app.delete("/transactions/del/:id", verifyToken, async (req, res) => {
   try {
     const transaction = await Transaction.findById(req.params.id);
+    const {budgetId}=transaction;
     if (!transaction) return res.status(404).json({ message: "Transaction not found" });
-
     const famount = transaction.amount + transaction.Bamount + transaction.Camount;
-
-    // Update budget (both Spent & savings)
-    const curBudget = await Budget.findById(transaction.budgetId);
-    const updatedSavings = curBudget.savings + famount;
-
+    const currentBudget = await Budget.findById(budgetId)
+    console.log(currentBudget);
+    var overflow=currentBudget.overflow;
+    if(currentBudget.overflow){
+      if(currentBudget.Spent-famount < currentBudget.budget){
+        console.log("changing");
+        overflow=false;
+      }
+    }
+    console.log(overflow);
+    const updatedSavings=currentBudget.budget-(currentBudget.Spent-famount);
     await Budget.findByIdAndUpdate(transaction.budgetId, {
-      $inc: { Spent: -famount },
-      $set: { savings: updatedSavings }
+      $inc: { Spent: -famount, savings: updatedSavings },
+      $set: { overflow }
     });
+
 
     // Update amounts (Bank + Cash or single method)
     if (transaction.payment_method === "BC") {
@@ -318,15 +419,14 @@ app.delete("/transactions/del/:id", verifyToken, async (req, res) => {
     }
 
     const updatedAmounts = await Amount.find({ userId: transaction.userId });
-
+    const updatedBudget = await Budget.findById(budgetId)
     await transaction.deleteOne();
 
     res.json({
       message: "Transaction deleted successfully",
       amounts: updatedAmounts,
       deletedId: transaction._id,
-      budgetId: transaction.budgetId,
-      savings: updatedSavings
+      updatedBudget
     });
   } catch (err) {
       console.error("Error in /transactions/add:", err);
@@ -347,28 +447,57 @@ app.delete("/transactions/del/:id", verifyToken, async (req, res) => {
     }
   });
 
-  app.post("/incomes/add",verifyToken, async (req, res) => {
-    const { userId,source,payment_method, amount,date } = req.body;
+  app.post("/incomes/add", verifyToken, async (req, res) => {
+    const { userId, source, payment_method, amount, date } = req.body;
+
     try {
-      const newIncome = new Income({ userId,source, amount,date,payment_method });
-      await newIncome.save();
-      await Amount.updateOne(
-      { userId, type: payment_method },
-      { $inc: { total: amount } },
-      { upsert: true }
-      );
+      const today = new Date();
+      const start = new Date(today.getFullYear(), today.getMonth(), 1);
+      const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+      let existing = null;
+
+      // ✅ Only check carry-forward if current request source is carry-forward
+      if (source === "Remaining Balance Carry Forward") {
+        existing = await Income.findOne({
+          userId: userId,
+          source: "Remaining Balance Carry Forward",
+          date: { $gte: start, $lte: end }
+        });
+
+        if (existing) {
+          const updatedAmounts = await Amount.find({ userId });
+          return res.json({ income: existing, amounts: updatedAmounts });
+        }
+      }
+
+      // ✅ For normal incomes, update Amounts table
+      if (source !== "Remaining Balance Carry Forward") {
+        await Amount.updateOne(
+          { userId, type: payment_method },
+          { $inc: { total: amount } },
+          { upsert: true }
+        );
+      }
+
       const updatedAmounts = await Amount.find({ userId });
-      res.status(201).json({income:newIncome,amounts:updatedAmounts});
+
+      // Save new income
+      const newIncome = new Income({ userId, source, amount, date, payment_method });
+      await newIncome.save();
+
+      res.status(201).json({ income: newIncome, amounts: updatedAmounts });
     } catch (err) {
       res.status(400).json({ message: err.message });
     }
   });
 
+
   app.delete("/incomes/del/:id", verifyToken, async (req, res) => {
     try {
       const income = await Income.findById(req.params.id);
       if (!income) return res.status(404).json({ message: "Income not found" });
-
+      const {userId}=income;
       await Amount.updateOne(
         { userId: income.userId, type: income.payment_method },
         { $inc: { total: -income.amount } }
@@ -378,6 +507,7 @@ app.delete("/transactions/del/:id", verifyToken, async (req, res) => {
       const updatedAmounts = await Amount.find({ userId });
       res.json({ message: "Income entry deleted successfully",amounts:updatedAmounts });
     } catch (err) {
+      console.log(err);
       res.status(500).json({ message: err.message });
     }
   });

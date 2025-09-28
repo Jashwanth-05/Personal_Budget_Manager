@@ -1,0 +1,39 @@
+/* CustomTooltip.css */
+.custom-tooltip-wrapper { /* wrapper styles applied inline in component */ }
+
+.custom-tooltip-content {
+  background: rgba(0,0,0,0.88);
+  color: #fff;
+  border-radius: 8px;
+  padding: 10px;
+  max-width: 280px;
+  max-height: 200px;     /* fixed height -> scrollable */
+  overflow-y: auto;
+  word-wrap: break-word;
+  font-size: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  pointer-events: auto;  /* allow hover / scroll events */
+}
+
+/* label */
+.custom-tooltip-label {
+  margin: 0 0 6px 0;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding-bottom: 6px;
+}
+
+/* list items */
+.custom-tooltip-item {
+  margin: 6px 0;
+  line-height: 1.2;
+}
+
+/* scrollbar styling: Chrome/Edge/Safari */
+.custom-tooltip-content::-webkit-scrollbar { width: 8px; }
+.custom-tooltip-content::-webkit-scrollbar-track { background: #111; border-radius: 8px; }
+.custom-tooltip-content::-webkit-scrollbar-thumb { background: #444; border-radius: 8px; }
+.custom-tooltip-content::-webkit-scrollbar-thumb:hover { background: #666; }
+
+/* Firefox */
+.custom-tooltip-content { scrollbar-width: thin; scrollbar-color: #444 #111; }

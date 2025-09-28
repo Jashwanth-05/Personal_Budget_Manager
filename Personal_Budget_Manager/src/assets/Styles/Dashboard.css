@@ -249,10 +249,18 @@
   transform: scale(1.1);
 }
 
-.remainder-box{
+.remainder-box {
   display: flex;
   flex-direction: row;
   gap: 10px;
+  overflow-x: auto;   /* enable horizontal scrolling */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Hide scrollbar in Chrome, Safari, Opera */
+.remainder-box::-webkit-scrollbar {
+  display: none;
 }
 
 .remainder-card h3, .remainder-card p{

@@ -13,7 +13,15 @@
 /* HEADER */
 .budgets-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
+}
+
+.budgets-options{
+ display: flex;
+ justify-content: space-between;
+ gap: 30px;
+ align-items: center;
 }
 
 .budgets-header svg {
@@ -24,7 +32,6 @@
 }
 
 .budgets-title {
-  flex: 1;
   text-align: center;
   font-size: 24px;
   font-weight: bold;
@@ -234,4 +241,12 @@
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+
+.budget-operation-bts{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
 }

@@ -1,6 +1,8 @@
 import React, { useState,useEffect,useRef,useMemo } from "react";
 import Navbar from "./Navbar";
 import { useBudget } from "./Contexts/BudgetContext";
+import Switch from '@mui/material/Switch';
+
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
@@ -12,6 +14,7 @@ import dayjs from "dayjs";
 import DeleteIcon from "@mui/icons-material/Delete";
 import "../Styles/Dashboard.css";
 import { PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import CustomTooltip from "./CustomTooltip";
 
 const Dashboard = () => {
   const { budgets, transactions,incomes,amounts,remainders,addRemainder,upRemainder,delRemainder } = useBudget();
@@ -325,10 +328,20 @@ const handleSubmit = (e) => {
         setHoveredId(null);
       }}
     >
-      
-<CheckCircleIcon className="icon-hover icon-green" onClick={()=>upRemainder(bill._id,true)} />
+
+<div>
+  <label htmlFor="" style={{fontWeight:"bold"}}>Repeat</label>
+<Switch
+  color="secondary"
+  checked={bill.isRepeated ?? false}
+  onChange={(e) =>
+    upRemainder(bill._id, { isPaid: bill.isPaid, isRepeated: e.target.checked })
+  }
+/>
+</div>
+<CheckCircleIcon className="icon-hover icon-green" onClick={()=>upRemainder(bill._id,{ isPaid: true, isRepeated: bill.isRepeated })} />
+<HighlightOffIcon className="icon-hover icon-orange"  onClick={() => upRemainder(bill._id, { isPaid: false, isRepeated: bill.isRepeated })}/>
 <DeleteIcon className="icon-hover icon-red" onClick={()=>delRemainder(bill._id)} />
-<HighlightOffIcon className="icon-hover icon-orange" onClick={()=>upRemainder(bill._id,false)}/>
 
           </Popup>
   )}
@@ -396,7 +409,7 @@ const handleSubmit = (e) => {
             <BarChart data={barData} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
               <XAxis dataKey="name" stroke="white" angle={-15} textAnchor="end" />
               <YAxis stroke="white" />
-              <Tooltip />
+              <Tooltip content={<CustomTooltip />} />
               {allDescriptions.map((desc, index) => (
                 <Bar key={desc} dataKey={desc} stackId="a" fill={barColorMapRef.current.get(desc)} />
               ))}
@@ -409,8 +422,9 @@ const handleSubmit = (e) => {
               <CloseIcon className="close-icon" onClick={() => setIsModalOpen(false)} />
               <h3>Add Remainder</h3>
               <form onSubmit={handleSubmit}>
-                <input type="text" name="title" placeholder="Remainder Title" value={Remainders.title} onChange={handleChange} />
-                <input type="date" name="dueDate" placeholder="Due Date" value={Remainders.dueDate} onChange={handleChange} />
+                <input type="text" name="title" placeholder="Remainder Title" value={Remainders.title ?? ""} onChange={handleChange} />
+                <label htmlFor="duedate" style={{textAlign:"left",fontWeight:"normal",fontSize:"15px"}}>Due Date:</label>
+                <input type="date" name="dueDate" id="duedate" placeholder="Due Date" value={Remainders.dueDate ?? ""} onChange={handleChange} />
                 <button type="submit">Add</button>
               </form>
             </div>
