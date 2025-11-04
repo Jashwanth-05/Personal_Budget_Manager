@@ -6,6 +6,7 @@ import Signup from './assets/Components/Signup';
 import Login from './assets/Components/Login';
 import Navbar from './assets/Components/Navbar';
 import Budgets from './assets/Components/Budgets';
+import Example from "./assets/Components/Example"
 import Transactions from './assets/Components/Transactions';
 import { BudgetProvider } from './assets/Components/Contexts/BudgetContext';
 import Dashboard from './assets/Components/Dashboard';
@@ -15,6 +16,7 @@ import TaxCalculator from './assets/Components/TaxCalculations';
 import Reset from './assets/Components/Reset';
 import Incomes from './assets/Components/Incomes';
 import Calculator from './assets/Components/Calculator';
+import AIChatPopup from './assets/Components/AI_Chat';
 function App() {
   return (
     <>
@@ -25,13 +27,13 @@ function App() {
           <Route path='/login' element={<Login />}></Route>
           <Route path='/signup' element={<Signup />}></Route>
           <Route path='/reset' element={<Reset />}></Route>
+          <Route path='/example' element={<AIChatPopup/>}></Route>
           <Route element={<ProtectedRoute />}>
             <Route path='/navbar' element={<Navbar />}></Route>
             <Route path='/budgets' element={<Budgets />}></Route>
             <Route path='/transactions' element={<Transactions />}></Route>
             <Route path='/dashboard' element={<Dashboard/>}></Route>
             <Route path='/incomes' element={<Incomes/>}></Route>
-            <Route path='/example' element={<Calculator/>}></Route>
             <Route path='/profile' element={<Profile/>}></Route>
             <Route path='/taxcalc' element={<TaxCalculator/>}></Route>
           </Route>

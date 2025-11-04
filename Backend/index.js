@@ -5,11 +5,12 @@ const bcrypt = require('bcrypt');
 const crypto = require("crypto");
 const sendOTP = require("./gmailservice");
 const cors=require('cors')
-dotenv.config()
+
+const chatRouter= require("./Routers/Chat.js")
+
 const app =express()
-app.use(express.json())
-app.use(cors())
 const PORT = 5556
+
 const Budget = require("./Models/Budget");
 const Remainder =require("./Models/Remainder");
 const Transaction = require("./Models/Transaction");
@@ -18,6 +19,10 @@ const Income = require("./Models/Income");
 const Amount = require("./Models/Amount");
 const User = require("./Models/User");
 const Tax =require("./Models/TaxSchema");
+
+dotenv.config()
+app.use(express.json())
+app.use(cors())
 
 mdb.connect(process.env.MONGODB_URL).then(()=>{
     console.log("MDB Connection Successful")
@@ -660,6 +665,7 @@ app.delete("/transactions/del/:id", verifyToken, async (req, res) => {
     res.json({ message: "OTP verified successfully!" });
   });
   
+  app.use('/api', chatRouter);
 
 
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -15,6 +15,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import Profile from './Profile';
 import Calculator from './Calculator';
 import FloatingDraggableModal from './FloatingDraggableModal.jsx';
+import AIChatPopup from './AI_Chat.jsx';
 const Navbar = () => {
   const [showProfile,setShowProfile]=useState(false);
     const { setBudgets,setTransactions,setIncomes } = useBudget();
@@ -69,6 +70,7 @@ const Navbar = () => {
           <FloatingDraggableModal show={isModalOpen} onClose={()=>setIsModalOpen(false)}>
             <Calculator/>
           </FloatingDraggableModal>
+          <AIChatPopup />
 
     </div>
   )
