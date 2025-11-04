@@ -1,46 +1,35 @@
 const express = require('express');
-const cors = require('cors');
 const app = express();
 const dotenv = require('dotenv');
 
 // Load environment variables
 dotenv.config();
 
-// --- START: MORE ROBUST CORS CONFIGURATION FOR RENDER ---
+// --- START: MANUAL CORS MIDDLEWARE ---
 
-// Define your allowed origins.
-// It's good practice to use an environment variable for this.
-const allowedOrigins = [
-  "https://pdm-psi.vercel.app"
-  // You can add more origins here, like 'http://localhost:3000' for local dev
-];
+app.use((req, res, next) => {
+  const allowedOrigins = [
+    "https://pdm-psi.vercel.app"
+    // Add 'http://localhost:3000' here if you need local development
+  ];
+  const origin = req.headers.origin;
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true // Important for requests with authorization
-};
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
 
-// Use the main cors middleware
-app.use(cors(corsOptions));
+  // Intercepts OPTIONS method
+  if (req.method === 'OPTIONS') {
+    // Respond with 200
+    return res.status(200).end();
+  }
 
-// Explicitly handle preflight requests for all routes
-// This can be a lifesaver behind proxies
-app.options('*', cors(corsOptions));
-
-// --- END: MORE ROBUST CORS CONFIGURATION ---
-
-// Middleware to parse JSON bodies
+  next();
+});
 app.use(express.json());
 
 const PORT = 5556
