@@ -1,20 +1,28 @@
-const express= require('express')
-const cors=require('cors')
-const app =express()
+const express = require('express');
+const cors = require('cors');
+const app = express();
+const dotenv = require('dotenv');
 
+// Load environment variables
+dotenv.config();
+
+// --- START: CORRECTED CORS CONFIGURATION ---
+// Place this at the very top, before any routes or other middleware.
 app.use(
   cors({
-    origin: "*",
+    origin: "https://pdm-psi.vercel.app", // Your exact Vercel frontend URL
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-app.options("*", cors());
+// --- END: CORRECTED CORS CONFIGURATION ---
+
+// Middleware to parse JSON bodies
+app.use(express.json());
 
 const PORT = 5556
 const chatRouter= require("./Routers/Chat.js")
 const mdb=require('mongoose')
-const dotenv=require('dotenv')
 const bcrypt = require('bcrypt');
 const crypto = require("crypto");
 const sendOTP = require("./gmailservice");
@@ -27,8 +35,8 @@ const Amount = require("./Models/Amount");
 const User = require("./Models/User");
 const Tax =require("./Models/TaxSchema");
 
-dotenv.config()
-app.use(express.json())
+
+
 
 
 
