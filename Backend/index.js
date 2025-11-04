@@ -6,16 +6,39 @@ const dotenv = require('dotenv');
 // Load environment variables
 dotenv.config();
 
-// --- START: CORRECTED CORS CONFIGURATION ---
-// Place this at the very top, before any routes or other middleware.
-app.use(
-  cors({
-    origin: "https://pdm-psi.vercel.app", // Your exact Vercel frontend URL
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
-// --- END: CORRECTED CORS CONFIGURATION ---
+// --- START: MORE ROBUST CORS CONFIGURATION FOR RENDER ---
+
+// Define your allowed origins.
+// It's good practice to use an environment variable for this.
+const allowedOrigins = [
+  "https://pdm-psi.vercel.app"
+  // You can add more origins here, like 'http://localhost:3000' for local dev
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true // Important for requests with authorization
+};
+
+// Use the main cors middleware
+app.use(cors(corsOptions));
+
+// Explicitly handle preflight requests for all routes
+// This can be a lifesaver behind proxies
+app.options('*', cors(corsOptions));
+
+// --- END: MORE ROBUST CORS CONFIGURATION ---
 
 // Middleware to parse JSON bodies
 app.use(express.json());
