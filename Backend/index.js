@@ -1,38 +1,46 @@
 const express = require('express');
 const app = express();
 const dotenv = require('dotenv');
+const cors = require('cors');
 
 // Load environment variables
 dotenv.config();
 
-// --- START: MANUAL CORS MIDDLEWARE ---
+// --- START: CORS CONFIGURATION ---
+const allowedOrigins = [
+  "https://pdm-psi.vercel.app",
+  // Uncomment for local development as needed
+  // "http://localhost:5173",
+  // "http://localhost:3000",
+];
 
-app.use((req, res, next) => {
-  const allowedOrigins = [
-    "https://pdm-psi.vercel.app"
-    // Add 'http://localhost:3000' here if you need local development
-  ];
-  const origin = req.headers.origin;
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow non-browser requests or same-origin with no Origin header
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error('Not allowed by CORS'));
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
 
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-
-  // Intercepts OPTIONS method
-  if (req.method === 'OPTIONS') {
-    // Respond with 200
-    return res.status(200).end();
-  }
-
-  next();
-});
+// Ensure preflight across all routes
+app.options('*', cors({
+  origin: allowedOrigins,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+}));
+// --- END: CORS CONFIGURATION ---
 app.use(express.json());
 
-const PORT = 5556
+const PORT = process.env.PORT || 5556
 const chatRouter= require("./Routers/Chat.js")
 const mdb=require('mongoose')
 const bcrypt = require('bcrypt');
