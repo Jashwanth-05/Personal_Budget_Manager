@@ -1,16 +1,23 @@
 const express= require('express')
+const cors=require('cors')
+const app =express()
+
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+app.options("*", cors());
+
+const PORT = 5556
+const chatRouter= require("./Routers/Chat.js")
 const mdb=require('mongoose')
 const dotenv=require('dotenv')
 const bcrypt = require('bcrypt');
 const crypto = require("crypto");
 const sendOTP = require("./gmailservice");
-const cors=require('cors')
-
-const chatRouter= require("./Routers/Chat.js")
-
-const app =express()
-const PORT = 5556
-
 const Budget = require("./Models/Budget");
 const Remainder =require("./Models/Remainder");
 const Transaction = require("./Models/Transaction");
@@ -22,16 +29,7 @@ const Tax =require("./Models/TaxSchema");
 
 dotenv.config()
 app.use(express.json())
-app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
 
-app.options("*", cors());
 
 
 mdb.connect(process.env.MONGODB_URL).then(()=>{
