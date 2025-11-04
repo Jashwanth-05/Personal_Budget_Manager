@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://personal-budget-manager-backend.onrender.com",
+  baseURL: "https://personal-budget-manager-psi.vercel.app",
   withCredentials: true,
 });
 
