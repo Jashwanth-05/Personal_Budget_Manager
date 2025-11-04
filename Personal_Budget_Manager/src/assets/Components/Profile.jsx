@@ -44,7 +44,7 @@ const Profile = ({ onClose,handleSignout }) => {
         width: "15vw",
         mx: "auto",
         bgcolor: "background.paper",
-        zIndex: 1000
+        zIndex: 1000000
       }}
     >
       {/* Close Button (Top Right) */}
