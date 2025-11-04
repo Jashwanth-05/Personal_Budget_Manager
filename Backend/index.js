@@ -22,7 +22,19 @@ const Tax =require("./Models/TaxSchema");
 
 dotenv.config()
 app.use(express.json())
-app.use(cors())
+app.use(
+  cors({
+    origin: [
+      "https://pdm-psi.vercel.app", // your Vercel frontend
+      "http://localhost:5173"       // optional for local dev
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
+app.options("*", cors());
+
 
 mdb.connect(process.env.MONGODB_URL).then(()=>{
     console.log("MDB Connection Successful")
